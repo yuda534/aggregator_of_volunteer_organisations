@@ -1,0 +1,2 @@
+# aggregator_of_volunteer_organisations
+Мой проект
