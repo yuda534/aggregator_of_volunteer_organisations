@@ -1,12 +1,37 @@
-from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, VolunteerProfileViewSet, OrganizationViewSet, EventViewSet, VolunteerApplicationViewSet
+from rest_framework import serializers
+from .models import CustomUser, VolunteerProfile, Organization, Event, VolunteerApplication
 
-router = DefaultRouter()
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'password', 'user_type', 'phone',
+                  'avatar', 'bio', 'city', 'is_verified', 'created_at']
+        extra_kwargs = {'password': {'write_only': True}}
 
-router.register('users', UserViewSet)  # /api/users/
-router.register('volunteers', VolunteerProfileViewSet)  # /api/volunteers/
-router.register('organizations', OrganizationViewSet)  # /api/organizations/
-router.register('events', EventViewSet)  # /api/events/
-router.register('applications', VolunteerApplicationViewSet)  # /api/applications/
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = CustomUser(**validated_data)
+        if password:
+            user.set_password(password)
+        user.save()
+        return user
 
-urlpatterns = router.urls
+class VolunteerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerProfile
+        fields = '__all__'
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = '__all__'
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+class VolunteerApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerApplication
+        fields = '__all__'
