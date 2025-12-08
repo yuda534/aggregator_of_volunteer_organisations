@@ -1,3 +1,4 @@
 from django.contrib import admin
-
-# Register your models here.
+from .models import User, Ed_org
+admin.register(User)
+admin.register(Ed_org)
