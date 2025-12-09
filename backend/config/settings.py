@@ -43,9 +43,6 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'api',
-    'accounts',
-    'events',
-    'users',
 
     'drf_yasg',
     'swagger',
@@ -97,7 +94,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-if os.getenv("USE_SQLITE") == "True":
+if os.getenv("USE_SQLITE", "True") == "True":
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -117,6 +114,7 @@ else:
         }
     }
     print("Use PostgreSQL")
+
 
 
 # Password validation
