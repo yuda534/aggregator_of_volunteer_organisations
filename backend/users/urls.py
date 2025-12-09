@@ -1,7 +1,6 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import indexView
 
-router = DefaultRouter()
-router.register("/", indexView)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('', indexView, name='users_index'),
+]
