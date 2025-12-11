@@ -7,5 +7,4 @@ urlpatterns = [
     path('api/', include('api.urls')),  # основное API
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), 
          name='schema-swagger-ui'),
-    path("users/", include("users.urls")),
 ]
