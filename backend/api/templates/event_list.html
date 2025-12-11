@@ -1,0 +1,13 @@
+<h1>События</h1>
+
+<ul>
+    {% for event in events %}
+        <li>
+            <a href="{% url 'event_detail' event.pk %}">
+                {{ event.title }}
+            </a>
+        </li>
+    {% empty %}
+        <p>Нет событий.</p>
+    {% endfor %}
+</ul>

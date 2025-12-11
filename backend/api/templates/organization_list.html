@@ -1,0 +1,13 @@
+<h1>Организации</h1>
+
+<ul>
+    {% for org in organizations %}
+        <li>
+            <a href="{% url 'organization_detail' org.pk %}">
+                {{ org.name }}
+            </a>
+        </li>
+    {% empty %}
+        <p>Нет организаций.</p>
+    {% endfor %}
+</ul>

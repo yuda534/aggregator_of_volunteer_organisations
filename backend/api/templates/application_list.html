@@ -1,0 +1,13 @@
+<h1>Заявки</h1>
+
+<ul>
+    {% for app in applications %}
+        <li>
+            <a href="{% url 'application_detail' app.pk %}">
+                {{ app.volunteer.user.username }} → {{ app.event.title }}
+            </a>
+        </li>
+    {% empty %}
+        <p>Нет заявок.</p>
+    {% endfor %}
+</ul>
