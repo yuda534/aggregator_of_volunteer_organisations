@@ -17,4 +17,5 @@ router.register('applications', VolunteerApplicationViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('map/', include('api.map_urls')),
 ]

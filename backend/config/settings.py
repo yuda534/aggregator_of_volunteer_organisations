@@ -27,7 +27,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Custom User Model
-#AUTH_USER_MODEL = 'api.CustomUser' !!!!!!!!!!!
+AUTH_USER_MODEL = 'api.CustomUser' #!!!!!!!!!!!
 
 print(os.getenv('DJANGO_SECRET_KEY'))
 

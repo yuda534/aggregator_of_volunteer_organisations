@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from django.shortcuts import render
 from .models import CustomUser, VolunteerProfile, Organization, Event, VolunteerApplication
 from .serializers import UserSerializer, VolunteerProfileSerializer, OrganizationSerializer, EventSerializer, VolunteerApplicationSerializer
 
@@ -21,3 +22,6 @@ class EventViewSet(viewsets.ModelViewSet):
 class VolunteerApplicationViewSet(viewsets.ModelViewSet):
     queryset = VolunteerApplication.objects.all()
     serializer_class = VolunteerApplicationSerializer
+
+def map_view(request):
+    return render(request, 'map.html')
