@@ -1,5 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+from .views import map_view
 from .views import (
     UserViewSet,
     VolunteerProfileViewSet,
@@ -17,5 +18,5 @@ router.register('applications', VolunteerApplicationViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('map/', include('api.map_urls')),
+    path('map/', map_view, name='map'),
 ]

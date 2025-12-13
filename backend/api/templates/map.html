@@ -1,53 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
     <title>Карта мероприятий</title>
-    <meta charset="utf-8" />
-
-    <!-- Leaflet CSS -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
 
     <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            padding: 10px;
+            margin: 0;
+        }
+
         #map {
-            height: 90vh;
             width: 100%;
+            height: 85vh;
         }
     </style>
+
+    <script
+        src="https://api-maps.yandex.ru/2.1/?apikey={{ YANDEX_MAPS_API_KEY }}&lang=ru_RU"
+        type="text/javascript">
+    </script>
 </head>
 <body>
 
 <h1>Карта волонтёрских мероприятий</h1>
 <div id="map"></div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-    // Инициализация карты
-    const map = L.map('map').setView([55.7558, 37.6173], 5); // центр — Россия
+    ymaps.ready(init);
 
-    // Слой карты
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    // Загрузка событий
-    fetch('/events/')
-        .then(response => response.json())
-        .then(events => {
-            events.forEach(event => {
-                if (event.latitude && event.longitude) {
-                    L.marker([event.latitude, event.longitude])
-                        .addTo(map)
-                        .bindPopup(
-                            `<b>${event.title}</b><br>${event.location}`
-                        );
-                }
-            });
+    function init() {
+        const map = new ymaps.Map("map", {
+            center: [55.7558, 37.6173], // центр — Москва
+            zoom: 5
         });
+
+        // Загружаем мероприятия из API
+        fetch('/api/events/')
+            .then(response => response.json())
+            .then(events => {
+                events.forEach(event => {
+                    if (event.latitude && event.longitude) {
+                        const placemark = new ymaps.Placemark(
+                            [event.latitude, event.longitude],
+                            {
+                                balloonContent: `
+                                    <strong>${event.title}</strong><br>
+                                    ${event.location}
+                                `
+                            }
+                        );
+                        map.geoObjects.add(placemark);
+                    }
+                });
+            });
+    }
 </script>
 
 </body>
