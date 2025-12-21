@@ -6,7 +6,7 @@ from .models import (
     Event,
     VolunteerApplication,
     VolunteerReview,
-    OrganizationReview,
+    OrganizationReview
 )
 
 
@@ -26,7 +26,9 @@ class UserSerializer(serializers.ModelSerializer):
             'is_verified',
             'created_at',
         ]
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -64,15 +66,54 @@ class VolunteerApplicationSerializer(serializers.ModelSerializer):
         read_only_fields = ['volunteer', 'status', 'applied_at']
 
 
+# ===== REVIEW SERIALIZERS =====
 class VolunteerReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = VolunteerReview
         fields = '__all__'
-        read_only_fields = ['organization', 'created_at']
+
+    def validate(self, data):
+        event = data['event']
+        volunteer = data['volunteer']
+
+        if event.status != 'completed':
+            raise serializers.ValidationError(
+                'Нельзя оставить отзыв до завершения мероприятия'
+            )
+
+        if not VolunteerApplication.objects.filter(
+            event=event,
+            volunteer=volunteer,
+            status='approved'
+        ).exists():
+            raise serializers.ValidationError(
+                'Волонтёр не участвовал в этом мероприятии'
+            )
+
+        return data
 
 
 class OrganizationReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationReview
         fields = '__all__'
-        read_only_fields = ['volunteer', 'created_at']
+
+    def validate(self, data):
+        event = data['event']
+        volunteer = data['volunteer']
+
+        if event.status != 'completed':
+            raise serializers.ValidationError(
+                'Нельзя оставить отзыв до завершения мероприятия'
+            )
+
+        if not VolunteerApplication.objects.filter(
+            event=event,
+            volunteer=volunteer,
+            status='approved'
+        ).exists():
+            raise serializers.ValidationError(
+                'Вы не участвовали в этом мероприятии'
+            )
+
+        return data

@@ -36,7 +36,7 @@ class VolunteerProfile(models.Model):
     skills = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    rating = models.FloatField(default=0.0)  # НАЧАЛЬНЫЙ РЕЙТИНГ
+    rating = models.FloatField(default=0.0)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -102,14 +102,9 @@ class VolunteerApplication(models.Model):
         return f"{self.volunteer} -> {self.event}"
 
 
-# ===== ОТЗЫВЫ =====
-
+# ===== ОТЗЫВ О ВОЛОНТЁРЕ =====
 class VolunteerReview(models.Model):
-    volunteer = models.ForeignKey(
-        VolunteerProfile,
-        on_delete=models.CASCADE,
-        related_name='reviews'
-    )
+    volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField()
@@ -120,15 +115,12 @@ class VolunteerReview(models.Model):
         unique_together = ('volunteer', 'event')
 
     def __str__(self):
-        return f"Review for {self.volunteer} ({self.rating})"
+        return f"Review for {self.volunteer}"
 
 
+# ===== ОТЗЫВ ОБ ОРГАНИЗАЦИИ =====
 class OrganizationReview(models.Model):
-    organization = models.ForeignKey(
-        Organization,
-        on_delete=models.CASCADE,
-        related_name='reviews'
-    )
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField()
@@ -136,7 +128,7 @@ class OrganizationReview(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('organization', 'event')
+        unique_together = ('organization', 'event', 'volunteer')
 
     def __str__(self):
-        return f"Review for {self.organization} ({self.rating})"
+        return f"Review for {self.organization}"

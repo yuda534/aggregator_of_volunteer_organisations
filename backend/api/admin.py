@@ -1,4 +1,4 @@
-from django.contrib import admin
+from rest_framework import serializers
 from .models import (
     CustomUser,
     VolunteerProfile,
@@ -6,51 +6,114 @@ from .models import (
     Event,
     VolunteerApplication,
     VolunteerReview,
-    OrganizationReview,
+    OrganizationReview
 )
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'username', 'email', 'user_type', 'is_verified', 'created_at')
-    list_filter = ('user_type', 'is_verified')
-    search_fields = ('username', 'email')
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id',
+            'username',
+            'email',
+            'password',
+            'user_type',
+            'phone',
+            'avatar',
+            'bio',
+            'city',
+            'is_verified',
+            'created_at',
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = CustomUser(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
 
 
-@admin.register(VolunteerProfile)
-class VolunteerProfileAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'rating', 'is_active', 'created_at')
-    search_fields = ('user__username',)
+class VolunteerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerProfile
+        fields = '__all__'
+        read_only_fields = ['user', 'rating', 'created_at']
 
 
-@admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'is_verified', 'created_at')
-    search_fields = ('name',)
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = '__all__'
+        read_only_fields = ['user', 'created_at']
 
 
-@admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'organization', 'status', 'start_date')
-    list_filter = ('status',)
-    search_fields = ('title',)
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = '__all__'
+        read_only_fields = ['organization', 'created_at']
 
 
-@admin.register(VolunteerApplication)
-class VolunteerApplicationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'volunteer', 'event', 'status', 'applied_at')
-    list_filter = ('status',)
+class VolunteerApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerApplication
+        fields = '__all__'
+        read_only_fields = ['volunteer', 'status', 'applied_at']
 
 
-@admin.register(VolunteerReview)
-class VolunteerReviewAdmin(admin.ModelAdmin):
-    list_display = ('id', 'volunteer', 'organization', 'event', 'rating', 'created_at')
-    list_filter = ('rating',)
-    search_fields = ('volunteer__user__username',)
+# ===== REVIEW SERIALIZERS =====
+class VolunteerReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VolunteerReview
+        fields = '__all__'
+
+    def validate(self, data):
+        event = data['event']
+        volunteer = data['volunteer']
+
+        if event.status != 'completed':
+            raise serializers.ValidationError(
+                'Нельзя оставить отзыв до завершения мероприятия'
+            )
+
+        if not VolunteerApplication.objects.filter(
+            event=event,
+            volunteer=volunteer,
+            status='approved'
+        ).exists():
+            raise serializers.ValidationError(
+                'Волонтёр не участвовал в этом мероприятии'
+            )
+
+        return data
 
 
-@admin.register(OrganizationReview)
-class OrganizationReviewAdmin(admin.ModelAdmin):
-    list_display = ('id', 'organization', 'volunteer', 'event', 'rating', 'created_at')
-    list_filter = ('rating',)
-    search_fields = ('organization__name',)
+class OrganizationReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrganizationReview
+        fields = '__all__'
+
+    def validate(self, data):
+        event = data['event']
+        volunteer = data['volunteer']
+
+        if event.status != 'completed':
+            raise serializers.ValidationError(
+                'Нельзя оставить отзыв до завершения мероприятия'
+            )
+
+        if not VolunteerApplication.objects.filter(
+            event=event,
+            volunteer=volunteer,
+            status='approved'
+        ).exists():
+            raise serializers.ValidationError(
+                'Вы не участвовали в этом мероприятии'
+            )
+
+        return data
