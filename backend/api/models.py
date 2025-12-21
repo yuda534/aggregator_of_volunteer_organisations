@@ -20,15 +20,11 @@ class CustomUser(AbstractUser):
         Group,
         related_name='custom_users',
         blank=True,
-        help_text='The groups this user belongs to.',
-        verbose_name='groups',
     )
     user_permissions = models.ManyToManyField(
         Permission,
         related_name='custom_users',
         blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
     )
 
     def __str__(self):
@@ -40,6 +36,7 @@ class VolunteerProfile(models.Model):
     skills = models.TextField(blank=True)
     experience = models.TextField(blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
+    rating = models.FloatField(default=0.0)  # НАЧАЛЬНЫЙ РЕЙТИНГ
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -78,10 +75,9 @@ class Event(models.Model):
     location = models.CharField(max_length=500)
     required_volunteers = models.PositiveIntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-    created_at = models.DateTimeField(auto_now_add=True)
-
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
@@ -100,7 +96,47 @@ class VolunteerApplication(models.Model):
     applied_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['volunteer', 'event']
+        unique_together = ('volunteer', 'event')
 
     def __str__(self):
         return f"{self.volunteer} -> {self.event}"
+
+
+# ===== ОТЗЫВЫ =====
+
+class VolunteerReview(models.Model):
+    volunteer = models.ForeignKey(
+        VolunteerProfile,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('volunteer', 'event')
+
+    def __str__(self):
+        return f"Review for {self.volunteer} ({self.rating})"
+
+
+class OrganizationReview(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField()
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('organization', 'event')
+
+    def __str__(self):
+        return f"Review for {self.organization} ({self.rating})"
