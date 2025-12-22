@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.db.models import Avg
 
 
 class CustomUser(AbstractUser):
@@ -16,16 +17,8 @@ class CustomUser(AbstractUser):
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    groups = models.ManyToManyField(
-        Group,
-        related_name='custom_users',
-        blank=True,
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='custom_users',
-        blank=True,
-    )
+    groups = models.ManyToManyField(Group, related_name='custom_users', blank=True)
+    user_permissions = models.ManyToManyField(Permission, related_name='custom_users', blank=True)
 
     def __str__(self):
         return self.username
@@ -40,6 +33,11 @@ class VolunteerProfile(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def recalculate_rating(self):
+        avg = self.volunteerreview_set.aggregate(avg=Avg('rating'))['avg']
+        self.rating = round(avg or 0, 2)
+        self.save(update_fields=['rating'])
+
     def __str__(self):
         return f"Volunteer: {self.user.username}"
 
@@ -52,8 +50,14 @@ class Organization(models.Model):
     website = models.URLField(blank=True)
     contact_email = models.EmailField()
     address = models.TextField()
+    rating = models.FloatField(default=0.0)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def recalculate_rating(self):
+        avg = self.organizationreview_set.aggregate(avg=Avg('rating'))['avg']
+        self.rating = round(avg or 0, 2)
+        self.save(update_fields=['rating'])
 
     def __str__(self):
         return self.name
@@ -102,7 +106,6 @@ class VolunteerApplication(models.Model):
         return f"{self.volunteer} -> {self.event}"
 
 
-# ===== ОТЗЫВ О ВОЛОНТЁРЕ =====
 class VolunteerReview(models.Model):
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
@@ -114,11 +117,14 @@ class VolunteerReview(models.Model):
     class Meta:
         unique_together = ('volunteer', 'event')
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.volunteer.recalculate_rating()
+
     def __str__(self):
         return f"Review for {self.volunteer}"
 
 
-# ===== ОТЗЫВ ОБ ОРГАНИЗАЦИИ =====
 class OrganizationReview(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
@@ -129,6 +135,10 @@ class OrganizationReview(models.Model):
 
     class Meta:
         unique_together = ('organization', 'event', 'volunteer')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.organization.recalculate_rating()
 
     def __str__(self):
         return f"Review for {self.organization}"
