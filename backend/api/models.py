@@ -98,6 +98,7 @@ class VolunteerApplication(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
+    no_show_marked = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('volunteer', 'event')
@@ -121,9 +122,6 @@ class VolunteerReview(models.Model):
         super().save(*args, **kwargs)
         self.volunteer.recalculate_rating()
 
-    def __str__(self):
-        return f"Review for {self.volunteer}"
-
 
 class OrganizationReview(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
@@ -139,6 +137,3 @@ class OrganizationReview(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.organization.recalculate_rating()
-
-    def __str__(self):
-        return f"Review for {self.organization}"

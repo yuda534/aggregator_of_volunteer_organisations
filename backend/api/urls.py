@@ -14,7 +14,11 @@ router.register('users', UserViewSet)
 router.register('volunteers', VolunteerProfileViewSet)
 router.register('organizations', OrganizationViewSet)
 router.register('events', EventViewSet)
-router.register('applications', VolunteerApplicationViewSet)
+router.register(
+    'applications',
+    VolunteerApplicationViewSet,
+    basename='applications'
+)
 
 urlpatterns = [
     path('', include(router.urls)),

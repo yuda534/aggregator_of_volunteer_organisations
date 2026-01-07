@@ -26,14 +26,22 @@ class UserSerializer(serializers.ModelSerializer):
             'is_verified',
             'created_at',
         ]
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'is_verified': {'read_only': True},
+            'created_at': {'read_only': True},
+        }
 
+    # НАЧАЛО ИЗМЕНЕНИЯ: сохранение user_type только при создании
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user = CustomUser(**validated_data)
+        user_type = validated_data.pop('user_type')
+
+        user = CustomUser(**validated_data, user_type=user_type)
         user.set_password(password)
         user.save()
         return user
+    # КОНЕЦ ИЗМЕНЕНИЯ: сохранение user_type только при создании
 
 
 class VolunteerProfileSerializer(serializers.ModelSerializer):

@@ -25,41 +25,68 @@ from .serializers import (
 from .permissions import IsOrganization, IsVolunteer
 
 
-# ===== USERS =====
+# =====================
+# USERS
+# =====================
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
 
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
-# ===== VOLUNTEERS =====
+
+# =====================
+# VOLUNTEERS
+# =====================
 class VolunteerProfileViewSet(viewsets.ModelViewSet):
     queryset = VolunteerProfile.objects.all()
     serializer_class = VolunteerProfileSerializer
+    permission_classes = [IsAuthenticated, IsVolunteer]
 
-    # === ИСПРАВЛЕНИЕ НАЧАЛО ===
     def perform_create(self, serializer):
-        if VolunteerProfile.objects.filter(user=self.request.user).exists():
+        user = self.request.user
+
+        # 1.4 — запрет двойной роли
+        if Organization.objects.filter(user=user).exists():
+            raise ValidationError(
+                'Нельзя быть волонтёром и представителем организации одновременно'
+            )
+
+        if VolunteerProfile.objects.filter(user=user).exists():
             raise ValidationError('Профиль волонтёра уже существует')
 
-        serializer.save(user=self.request.user)
-    # === ИСПРАВЛЕНИЕ КОНЕЦ ===
+        serializer.save(user=user)
 
 
-# ===== ORGANIZATIONS =====
+# =====================
+# ORGANIZATIONS
+# =====================
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
+    permission_classes = [IsAuthenticated, IsOrganization]
 
-    # === ИСПРАВЛЕНИЕ НАЧАЛО ===
     def perform_create(self, serializer):
-        if Organization.objects.filter(user=self.request.user).exists():
+        user = self.request.user
+
+        # 1.4 — запрет двойной роли
+        if VolunteerProfile.objects.filter(user=user).exists():
+            raise ValidationError(
+                'Нельзя быть волонтёром и представителем организации одновременно'
+            )
+
+        if Organization.objects.filter(user=user).exists():
             raise ValidationError('У пользователя уже есть организация')
 
-        serializer.save(user=self.request.user)
-    # === ИСПРАВЛЕНИЕ КОНЕЦ ===
+        serializer.save(user=user)
 
 
-# ===== EVENTS =====
+# =====================
+# EVENTS
+# =====================
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
@@ -69,7 +96,6 @@ class EventViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated(), IsOrganization()]
         return [AllowAny()]
 
-    # === ИСПРАВЛЕНИЕ НАЧАЛО ===
     def perform_create(self, serializer):
         try:
             organization = Organization.objects.get(user=self.request.user)
@@ -77,53 +103,53 @@ class EventViewSet(viewsets.ModelViewSet):
             raise ValidationError('У пользователя нет организации')
 
         serializer.save(organization=organization)
-    # === ИСПРАВЛЕНИЕ КОНЕЦ ===
 
 
-# ===== VOLUNTEER APPLICATIONS =====
+# =====================
+# VOLUNTEER APPLICATIONS
+# =====================
 class VolunteerApplicationViewSet(viewsets.ModelViewSet):
     queryset = VolunteerApplication.objects.all()
     serializer_class = VolunteerApplicationSerializer
 
-
-    # === ШАГ 3: ФИЛЬТРАЦИЯ ЗАЯВОК ===
     def get_queryset(self):
         user = self.request.user
 
         if not user.is_authenticated:
             return VolunteerApplication.objects.none()
 
-        # волонтёр — только свои заявки
         if user.user_type == 'volunteer':
             return VolunteerApplication.objects.filter(
                 volunteer__user=user
             )
 
-        # организация — заявки на свои события
         if user.user_type == 'organization':
             return VolunteerApplication.objects.filter(
                 event__organization__user=user
             )
 
         return VolunteerApplication.objects.none()
-    # === КОНЕЦ ШАГА 3 ===
 
     def get_permissions(self):
         if self.action == 'create':
             return [IsAuthenticated(), IsVolunteer()]
-        if self.action in ['approve', 'reject']:
+        if self.action in ['approve', 'reject', 'no_show']:
             return [IsAuthenticated(), IsOrganization()]
         return [IsAuthenticated()]
 
-    # === ИСПРАВЛЕНИЕ НАЧАЛО ===
     def perform_create(self, serializer):
         try:
             volunteer_profile = VolunteerProfile.objects.get(user=self.request.user)
         except VolunteerProfile.DoesNotExist:
             raise ValidationError('Создайте профиль волонтёра перед подачей заявки')
 
-        event = serializer.validated_data.get('event')
+        event = serializer.validated_data['event']
 
+        # 1.2 — запрет заявки на собственное мероприятие
+        if event.organization.user == self.request.user:
+            raise ValidationError('Нельзя подать заявку на собственное мероприятие')
+
+        # 1.3 — запрет повторной заявки
         if VolunteerApplication.objects.filter(
             volunteer=volunteer_profile,
             event=event
@@ -131,7 +157,6 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
             raise ValidationError('Вы уже подали заявку на это мероприятие')
 
         serializer.save(volunteer=volunteer_profile)
-    # === ИСПРАВЛЕНИЕ КОНЕЦ ===
 
     # ===== APPROVE =====
     @action(detail=True, methods=['post'])
@@ -144,8 +169,19 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        approved_count = VolunteerApplication.objects.filter(
+            event=application.event,
+            status='approved'
+        ).count()
+
+        if approved_count >= application.event.required_volunteers:
+            return Response(
+                {'detail': 'Набор волонтёров уже завершён'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         application.status = 'approved'
-        application.save()
+        application.save(update_fields=['status'])
 
         return Response({'status': 'Заявка одобрена'})
 
@@ -161,12 +197,40 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
             )
 
         application.status = 'rejected'
-        application.save()
+        application.save(update_fields=['status'])
 
         return Response({'status': 'Заявка отклонена'})
 
+    # ===== NO SHOW =====
+    @action(detail=True, methods=['post'])
+    def no_show(self, request, pk=None):
+        application = self.get_object()
 
-# ===== MAP =====
+        if application.event.organization.user != request.user:
+            return Response(
+                {'detail': 'Вы не можете управлять этой заявкой'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if application.status != 'approved':
+            return Response(
+                {'detail': 'Неявку можно отметить только для одобренной заявки'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        volunteer = application.volunteer
+        volunteer.rating = max(volunteer.rating - 0.5, 0.0)
+        volunteer.save(update_fields=['rating'])
+
+        return Response({
+            'status': 'Волонтёр не пришёл',
+            'new_rating': volunteer.rating
+        })
+
+
+# =====================
+# MAP
+# =====================
 def map_view(request):
     return render(
         request,
