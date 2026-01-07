@@ -7,33 +7,24 @@ import os
 from dotenv import load_dotenv
 from datetime import timedelta
 
-# ===============================
-# НАЧАЛО ИЗМЕНЕНИЯ: загрузка .env и SECRET_KEY
-# ===============================
+# ======================================================
+# BASE DIR + ENV
+# ======================================================
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-1234567890")
-# ===============================
-# КОНЕЦ ИЗМЕНЕНИЯ: загрузка .env и SECRET_KEY
-# ===============================
-
-YANDEX_MAPS_API_KEY = os.getenv('YANDEX_MAPS_API_KEY')
 
 DEBUG = True
 
-# ===============================
-# НАЧАЛО ИЗМЕНЕНИЯ: ALLOWED_HOSTS
-# ===============================
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
-# ===============================
-# КОНЕЦ ИЗМЕНЕНИЯ: ALLOWED_HOSTS
-# ===============================
+
+YANDEX_MAPS_API_KEY = os.getenv("YANDEX_MAPS_API_KEY")
 
 
-# ===============================
+# ======================================================
 # APPLICATIONS
-# ===============================
+# ======================================================
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,6 +44,9 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'api.CustomUser'
 
 
+# ======================================================
+# MIDDLEWARE
+# ======================================================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -64,13 +58,23 @@ MIDDLEWARE = [
 ]
 
 
+# ======================================================
+# URLS / WSGI
+# ======================================================
 ROOT_URLCONF = 'config.urls'
 
+WSGI_APPLICATION = 'config.wsgi.application'
 
+
+# ======================================================
+# TEMPLATES (frontend/templates)
+# ======================================================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR.parent / 'frontend' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -83,12 +87,19 @@ TEMPLATES = [
 ]
 
 
-WSGI_APPLICATION = 'config.wsgi.application'
+# ======================================================
+# STATIC FILES (frontend/static)
+# ======================================================
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR.parent / 'frontend' / 'static',
+]
 
 
-# ===============================
+# ======================================================
 # DATABASE
-# ===============================
+# ======================================================
 if os.getenv("USE_SQLITE", "True") == "True":
     DATABASES = {
         'default': {
@@ -109,9 +120,9 @@ else:
     }
 
 
-# ===============================
+# ======================================================
 # PASSWORD VALIDATION
-# ===============================
+# ======================================================
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -120,27 +131,24 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# ===============================
+# ======================================================
 # INTERNATIONALIZATION
-# ===============================
+# ======================================================
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 USE_TZ = True
 
 
-# ===============================
-# STATIC
-# ===============================
-STATIC_URL = 'static/'
-
-
+# ======================================================
+# DEFAULTS
+# ======================================================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# ===============================
+# ======================================================
 # DRF + JWT
-# ===============================
+# ======================================================
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',

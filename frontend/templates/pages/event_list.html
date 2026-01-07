@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Мероприятия{% endblock %}
+
+{% block content %}
+<h1>Мероприятия</h1>
+
+{% if events %}
+    <ul>
+        {% for event in events %}
+            <li>
+                <h3>
+                    <a href="/events/{{ event.id }}/">
+                        {{ event.title }}
+                    </a>
+                </h3>
+                <p>{{ event.description|truncatechars:120 }}</p>
+                <small>{{ event.start_date }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Мероприятий пока нет</p>
+{% endif %}
+{% endblock %}

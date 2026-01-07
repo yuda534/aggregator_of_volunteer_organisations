@@ -7,18 +7,13 @@ from rest_framework_simplejwt.views import (
 )
 
 from swagger.swagger import schema_view
+from api.views import home  # 👈 ДОБАВЛЕНО
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # ===============================
-    # НАЧАЛО ИЗМЕНЕНИЯ: единая точка входа API
-    # ===============================
     path('api/', include('api.urls')),
-    # ===============================
-    # КОНЕЦ ИЗМЕНЕНИЯ: единая точка входа API
-    # ===============================
 
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
@@ -28,4 +23,6 @@ urlpatterns = [
         schema_view.with_ui('swagger', cache_timeout=0),
         name='schema-swagger-ui'
     ),
+
+    path('', home, name='home'),  # 👈 ГЛАВНАЯ СТРАНИЦА
 ]

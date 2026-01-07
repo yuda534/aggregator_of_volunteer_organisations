@@ -49,7 +49,6 @@ class VolunteerProfileViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
 
-        # 1.4 — запрет двойной роли
         if Organization.objects.filter(user=user).exists():
             raise ValidationError(
                 'Нельзя быть волонтёром и представителем организации одновременно'
@@ -72,7 +71,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
 
-        # 1.4 — запрет двойной роли
         if VolunteerProfile.objects.filter(user=user).exists():
             raise ValidationError(
                 'Нельзя быть волонтёром и представителем организации одновременно'
@@ -145,11 +143,9 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
 
         event = serializer.validated_data['event']
 
-        # 1.2 — запрет заявки на собственное мероприятие
         if event.organization.user == self.request.user:
             raise ValidationError('Нельзя подать заявку на собственное мероприятие')
 
-        # 1.3 — запрет повторной заявки
         if VolunteerApplication.objects.filter(
             volunteer=volunteer_profile,
             event=event
@@ -158,7 +154,6 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
 
         serializer.save(volunteer=volunteer_profile)
 
-    # ===== APPROVE =====
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         application = self.get_object()
@@ -185,7 +180,6 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 'Заявка одобрена'})
 
-    # ===== REJECT =====
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         application = self.get_object()
@@ -201,7 +195,6 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 'Заявка отклонена'})
 
-    # ===== NO SHOW =====
     @action(detail=True, methods=['post'])
     def no_show(self, request, pk=None):
         application = self.get_object()
@@ -237,3 +230,20 @@ def map_view(request):
         'map.html',
         {'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY}
     )
+
+
+# =====================
+# PAGES
+# =====================
+def event_list_view(request):
+    events = Event.objects.filter(status='active').order_by('start_date')
+    return render(request, 'pages/event_list.html', {'events': events})
+
+
+def event_detail_view(request, event_id):
+    event = Event.objects.get(id=event_id)
+    return render(request, 'pages/event_detail.html', {'event': event})
+
+
+def home(request):
+    return render(request, 'pages/home.html')

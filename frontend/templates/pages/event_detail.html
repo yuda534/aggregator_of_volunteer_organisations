@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+<h1>{{ event.title }}</h1>
+
+<p>{{ event.description }}</p>
+
+<p><strong>Дата начала:</strong> {{ event.start_date }}</p>
+<p><strong>Дата окончания:</strong> {{ event.end_date }}</p>
+<p><strong>Место:</strong> {{ event.location }}</p>
+<p><strong>Организация:</strong> {{ event.organization.name }}</p>
+
+<a href="/events/" class="btn">← Назад к списку</a>
+{% endblock %}
