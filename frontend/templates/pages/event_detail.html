@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ event.title }}{% endblock %}
+{% block title %}{{ event.title }} — Go2Help{% endblock %}
 
 {% block content %}
 <h1>{{ event.title }}</h1>
@@ -12,5 +12,16 @@
 <p><strong>Место:</strong> {{ event.location }}</p>
 <p><strong>Организация:</strong> {{ event.organization.name }}</p>
 
-<a href="/events/" class="btn">← Назад к списку</a>
+<hr>
+
+{% if user.is_authenticated %}
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn" type="submit">Подать заявку</button>
+    </form>
+{% else %}
+    <p>Войдите, чтобы подать заявку.</p>
+{% endif %}
+
+<a href="/events/" class="btn btn-secondary">← Назад</a>
 {% endblock %}

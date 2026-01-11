@@ -1,4 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}
+Заявка №{{ application.id }}
+{% endblock %}
+
+{% block content %}
 <h1>Заявка №{{ application.id }}</h1>
-<p>Волонтёр: {{ application.volunteer.user.username }}</p>
-<p>Событие: {{ application.event.title }}</p>
-<p>Статус: {{ application.status }}</p>
+
+<p><strong>Волонтёр:</strong> {{ application.volunteer.user.username }}</p>
+<p><strong>Событие:</strong> {{ application.event.title }}</p>
+<p><strong>Статус:</strong> {{ application.status }}</p>
+{% endblock %}

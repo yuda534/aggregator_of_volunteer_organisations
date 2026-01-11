@@ -4,9 +4,22 @@
 
         <ul class="nav-links">
             <li><a href="/events/">Мероприятия</a></li>
-            <li><a href="/organizations/">Организации</a></li>
-            <li><a href="/volunteers/">Волонтёры</a></li>
             <li><a href="/map/">Карта</a></li>
+
+            {% if user.is_authenticated %}
+                <li>
+                    <span style="color: #ecf0f1;">
+                        {{ user.username }}
+                    </span>
+                </li>
+                <li>
+                    <a href="/admin/logout/">Выйти</a>
+                </li>
+            {% else %}
+                <li>
+                    <a href="/admin/login/">Войти</a>
+                </li>
+            {% endif %}
         </ul>
     </div>
 </nav>

@@ -1,11 +1,10 @@
-from rest_framework import viewsets
 from django.conf import settings
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.exceptions import ValidationError
 
 from .models import (
@@ -15,6 +14,7 @@ from .models import (
     Event,
     VolunteerApplication
 )
+
 from .serializers import (
     UserSerializer,
     VolunteerProfileSerializer,
@@ -22,12 +22,14 @@ from .serializers import (
     EventSerializer,
     VolunteerApplicationSerializer
 )
+
 from .permissions import IsOrganization, IsVolunteer
 
 
-# =====================
-# USERS
-# =====================
+# ======================================================
+# DRF API (ViewSets)
+# ======================================================
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = UserSerializer
@@ -38,9 +40,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
 
-# =====================
-# VOLUNTEERS
-# =====================
 class VolunteerProfileViewSet(viewsets.ModelViewSet):
     queryset = VolunteerProfile.objects.all()
     serializer_class = VolunteerProfileSerializer
@@ -60,9 +59,6 @@ class VolunteerProfileViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
 
 
-# =====================
-# ORGANIZATIONS
-# =====================
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
@@ -82,9 +78,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
 
 
-# =====================
-# EVENTS
-# =====================
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
@@ -103,11 +96,7 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer.save(organization=organization)
 
 
-# =====================
-# VOLUNTEER APPLICATIONS
-# =====================
 class VolunteerApplicationViewSet(viewsets.ModelViewSet):
-    queryset = VolunteerApplication.objects.all()
     serializer_class = VolunteerApplicationSerializer
 
     def get_queryset(self):
@@ -160,90 +149,90 @@ class VolunteerApplicationViewSet(viewsets.ModelViewSet):
 
         if application.event.organization.user != request.user:
             return Response(
-                {'detail': 'Вы не можете управлять этой заявкой'},
+                {'detail': 'Нет доступа'},
                 status=status.HTTP_403_FORBIDDEN
-            )
-
-        approved_count = VolunteerApplication.objects.filter(
-            event=application.event,
-            status='approved'
-        ).count()
-
-        if approved_count >= application.event.required_volunteers:
-            return Response(
-                {'detail': 'Набор волонтёров уже завершён'},
-                status=status.HTTP_400_BAD_REQUEST
             )
 
         application.status = 'approved'
         application.save(update_fields=['status'])
-
-        return Response({'status': 'Заявка одобрена'})
+        return Response({'status': 'Одобрено'})
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         application = self.get_object()
-
-        if application.event.organization.user != request.user:
-            return Response(
-                {'detail': 'Вы не можете управлять этой заявкой'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         application.status = 'rejected'
         application.save(update_fields=['status'])
-
-        return Response({'status': 'Заявка отклонена'})
-
-    @action(detail=True, methods=['post'])
-    def no_show(self, request, pk=None):
-        application = self.get_object()
-
-        if application.event.organization.user != request.user:
-            return Response(
-                {'detail': 'Вы не можете управлять этой заявкой'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        if application.status != 'approved':
-            return Response(
-                {'detail': 'Неявку можно отметить только для одобренной заявки'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        volunteer = application.volunteer
-        volunteer.rating = max(volunteer.rating - 0.5, 0.0)
-        volunteer.save(update_fields=['rating'])
-
-        return Response({
-            'status': 'Волонтёр не пришёл',
-            'new_rating': volunteer.rating
-        })
+        return Response({'status': 'Отклонено'})
 
 
-# =====================
-# MAP
-# =====================
-def map_view(request):
-    return render(
-        request,
-        'map.html',
-        {'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY}
-    )
+# ======================================================
+# HTML PAGES (НЕ API)
+# ======================================================
+
+def home(request):
+    return render(request, 'pages/home.html')
 
 
-# =====================
-# PAGES
-# =====================
 def event_list_view(request):
     events = Event.objects.filter(status='active').order_by('start_date')
     return render(request, 'pages/event_list.html', {'events': events})
 
 
 def event_detail_view(request, event_id):
-    event = Event.objects.get(id=event_id)
+    event = get_object_or_404(Event, id=event_id)
     return render(request, 'pages/event_detail.html', {'event': event})
 
 
-def home(request):
-    return render(request, 'pages/home.html')
+def organization_list(request):
+    organizations = Organization.objects.all()
+    return render(request, 'organization_list.html', {'organizations': organizations})
+
+
+def organization_detail(request, pk):
+    organization = get_object_or_404(Organization, pk=pk)
+    return render(request, 'organization_detail.html', {'organization': organization})
+
+
+def volunteer_list(request):
+    volunteers = VolunteerProfile.objects.select_related('user')
+    return render(request, 'volunteer_list.html', {'volunteers': volunteers})
+
+
+def volunteer_detail(request, pk):
+    volunteer = get_object_or_404(
+        VolunteerProfile.objects.select_related('user'),
+        pk=pk
+    )
+    return render(request, 'volunteer_detail.html', {'volunteer': volunteer})
+
+
+def application_list(request):
+    user = request.user
+
+    if not user.is_authenticated:
+        applications = []
+    elif user.user_type == 'volunteer':
+        applications = VolunteerApplication.objects.filter(
+            volunteer__user=user
+        )
+    elif user.user_type == 'organization':
+        applications = VolunteerApplication.objects.filter(
+            event__organization__user=user
+        )
+    else:
+        applications = []
+
+    return render(request, 'application_list.html', {'applications': applications})
+
+
+def application_detail(request, pk):
+    application = get_object_or_404(VolunteerApplication, pk=pk)
+    return render(request, 'application_detail.html', {'application': application})
+
+
+def map_view(request):
+    return render(
+        request,
+        'map.html',
+        {'YANDEX_MAPS_API_KEY': settings.YANDEX_MAPS_API_KEY}
+    )

@@ -1,4 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ organization.name }}
+{% endblock %}
+
+{% block content %}
 <h1>{{ organization.name }}</h1>
+
 <p>{{ organization.description }}</p>
-<p>Email: {{ organization.contact_email }}</p>
-<p>Адрес: {{ organization.address }}</p>
+
+<p>
+    <strong>Email:</strong>
+    {{ organization.contact_email }}
+</p>
+
+<p>
+    <strong>Адрес:</strong>
+    {{ organization.address }}
+</p>
+{% endblock %}

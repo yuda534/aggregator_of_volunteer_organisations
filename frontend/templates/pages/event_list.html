@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Мероприятия{% endblock %}
+{% block title %}Мероприятия — Go2Help{% endblock %}
 
 {% block content %}
 <h1>Мероприятия</h1>
@@ -8,7 +8,7 @@
 {% if events %}
     <ul>
         {% for event in events %}
-            <li>
+            <li style="margin-bottom: 20px;">
                 <h3>
                     <a href="/events/{{ event.id }}/">
                         {{ event.title }}
@@ -20,6 +20,6 @@
         {% endfor %}
     </ul>
 {% else %}
-    <p>Мероприятий пока нет</p>
+    <p>Мероприятий пока нет.</p>
 {% endif %}
 {% endblock %}
