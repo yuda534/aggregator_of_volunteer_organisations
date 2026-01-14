@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Организации</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+        }
+
+        .org-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .org-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .org-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .org-description {
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .org-rating {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #f39c12;
+        }
+
+        .details-link {
+            align-self: flex-start;
+            text-decoration: none;
+            color: #0066cc;
+            font-weight: bold;
+        }
+
+        .details-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Волонтерские организации</h1>
+
+    {% if organizations %}
+        <div class="org-list">
+            {% for organization in organizations %}
+                <div class="org-card">
+                    <div>
+                        <div class="org-name">
+                            {{ organization.name }}
+                        </div>
+
+                        <div class="org-description">
+                            {{ organization.description|truncatechars:150 }}
+                        </div>
+
+                        <div class="org-rating">
+                            Рейтинг: {{ organization.rating }}
+                        </div>
+                    </div>
+
+                    <a
+                        href="{% url 'organization_detail' organization.id %}"
+                        class="details-link"
+                    >
+                        Подробнее →
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">
+            Пока нет зарегистрированных организаций.
+        </div>
+    {% endif %}
+
+    <a href="/" class="back-link">← На главную</a>
+</div>
+
+</body>
+</html>

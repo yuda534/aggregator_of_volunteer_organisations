@@ -8,75 +8,45 @@ from .models import (
 )
 
 
-# ===== HOME =====
-
 def home_view(request):
     return render(request, 'pages/home.html')
 
 
-# ===== EVENTS =====
-
 def event_list_view(request):
-    events = Event.objects.all()
-    return render(request, 'pages/event_list.html', {
-        'events': events
-    })
+    events = Event.objects.filter(status='active').order_by('start_date')
+    return render(request, 'pages/event_list.html', {'events': events})
 
 
 def event_detail_view(request, pk):
     event = get_object_or_404(Event, pk=pk)
-    return render(request, 'pages/event_detail.html', {
-        'event': event
-    })
+    return render(request, 'pages/event_detail.html', {'event': event})
 
-
-# ===== ORGANIZATIONS =====
 
 def organization_list_view(request):
     organizations = Organization.objects.all()
-    return render(request, 'organization_list.html', {
-        'organizations': organizations
-    })
+    return render(request, 'organization_list.html', {'organizations': organizations})
 
 
 def organization_detail_view(request, pk):
     organization = get_object_or_404(Organization, pk=pk)
-    return render(request, 'organization_detail.html', {
-        'organization': organization
-    })
+    return render(request, 'organization_detail.html', {'organization': organization})
 
-
-# ===== VOLUNTEERS =====
 
 def volunteer_list_view(request):
-    volunteers = VolunteerProfile.objects.select_related('user').all()
-    return render(request, 'volunteer_list.html', {
-        'volunteers': volunteers
-    })
+    volunteers = VolunteerProfile.objects.select_related('user')
+    return render(request, 'volunteer_list.html', {'volunteers': volunteers})
 
 
 def volunteer_detail_view(request, pk):
     volunteer = get_object_or_404(VolunteerProfile, pk=pk)
-    return render(request, 'volunteer_detail.html', {
-        'volunteer': volunteer
-    })
+    return render(request, 'volunteer_detail.html', {'volunteer': volunteer})
 
-
-# ===== APPLICATIONS =====
 
 def application_list_view(request):
-    applications = VolunteerApplication.objects.select_related(
-        'volunteer__user',
-        'event'
-    ).all()
-
-    return render(request, 'application_list.html', {
-        'applications': applications
-    })
+    applications = VolunteerApplication.objects.all()
+    return render(request, 'application_list.html', {'applications': applications})
 
 
 def application_detail_view(request, pk):
     application = get_object_or_404(VolunteerApplication, pk=pk)
-    return render(request, 'application_detail.html', {
-        'application': application
-    })
+    return render(request, 'application_detail.html', {'application': application})

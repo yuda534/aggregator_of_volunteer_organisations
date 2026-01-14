@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Волонтёр</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 25px 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .text {
+            font-size: 14px;
+            color: #444;
+        }
+
+        .meta {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .rating {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .back {
+            margin-top: 25px;
+        }
+
+        .back a {
+            text-decoration: none;
+            color: #0066cc;
+            font-size: 14px;
+        }
+
+        .back a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>
+        {{ volunteer.user.get_full_name|default:volunteer.user.username }}
+    </h1>
+
+    <div class="card">
+        <div class="meta">
+            {% if volunteer.user.email %}
+                📧 {{ volunteer.user.email }}<br>
+            {% endif %}
+            {% if volunteer.user.city %}
+                📍 {{ volunteer.user.city }}
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <div class="section-title">Рейтинг</div>
+            <div class="rating">
+                {{ volunteer.rating }}
+            </div>
+        </div>
+
+        {% if volunteer.skills %}
+            <div class="section">
+                <div class="section-title">Навыки</div>
+                <div class="text">
+                    {{ volunteer.skills }}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if volunteer.experience %}
+            <div class="section">
+                <div class="section-title">Опыт</div>
+                <div class="text">
+                    {{ volunteer.experience }}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if volunteer.date_of_birth %}
+            <div class="section">
+                <div class="section-title">Дата рождения</div>
+                <div class="text">
+                    {{ volunteer.date_of_birth }}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="back">
+        <a href="{% url 'volunteer_list' %}">← Назад к списку волонтёров</a>
+    </div>
+</div>
+
+</body>
+</html>
