@@ -1,4 +1,7 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 
 from .models import (
     Event,
@@ -7,6 +10,10 @@ from .models import (
     VolunteerApplication
 )
 
+
+# =========================
+# PAGES
+# =========================
 
 def home_view(request):
     return render(request, 'pages/home.html')
@@ -51,13 +58,54 @@ def application_detail_view(request, pk):
     application = get_object_or_404(VolunteerApplication, pk=pk)
     return render(request, 'api/application_detail.html', {'application': application})
 
+
 def map_view(request):
     events = Event.objects.filter(
         status='active',
         latitude__isnull=False,
         longitude__isnull=False
     )
+    return render(request, 'api/map.html', {'events': events})
 
-    return render(request, 'api/map.html', {
-        'events': events
-    })
+
+# =========================
+# AUTH (HTML)
+# =========================
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user:
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'Неверный логин или пароль')
+
+    return render(request, 'auth/login.html')
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserCreationForm()
+
+    return render(request, 'auth/register.html', {'form': form})

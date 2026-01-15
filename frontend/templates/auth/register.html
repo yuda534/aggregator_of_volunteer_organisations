@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация — Go2Help{% endblock %}
+
+{% block content %}
+<h1>Регистрация</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Зарегистрироваться</button>
+</form>
+
+<p style="margin-top: 15px;">
+    Уже есть аккаунт? <a href="/login/">Войти</a>
+</p>
+{% endblock %}

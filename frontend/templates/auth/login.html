@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — Go2Help{% endblock %}
+
+{% block content %}
+<h1>Вход</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div>
+        <label>Логин</label><br>
+        <input type="text" name="username" required>
+    </div>
+
+    <div style="margin-top: 10px;">
+        <label>Пароль</label><br>
+        <input type="password" name="password" required>
+    </div>
+
+    <button type="submit" style="margin-top: 15px;">Войти</button>
+</form>
+
+{% for message in messages %}
+    <p style="color: red;">{{ message }}</p>
+{% endfor %}
+
+<p style="margin-top: 15px;">
+    Нет аккаунта? <a href="/register/">Регистрация</a>
+</p>
+{% endblock %}
