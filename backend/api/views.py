@@ -50,3 +50,14 @@ def application_list_view(request):
 def application_detail_view(request, pk):
     application = get_object_or_404(VolunteerApplication, pk=pk)
     return render(request, 'api/application_detail.html', {'application': application})
+
+def map_view(request):
+    events = Event.objects.filter(
+        status='active',
+        latitude__isnull=False,
+        longitude__isnull=False
+    )
+
+    return render(request, 'api/map.html', {
+        'events': events
+    })

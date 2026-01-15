@@ -13,6 +13,9 @@ urlpatterns = [
 
     # HTML страницы
     path('', include('api.urls')),
+    
+    # Map
+    path('map/', include('api.map_urls')),
 
     # Auth (API)
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
