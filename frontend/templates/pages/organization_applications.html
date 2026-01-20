@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Заявки на мероприятия — Go2Help{% endblock %}
+
+{% block content %}
+<h1>Заявки на ваши мероприятия</h1>
+
+{% if applications %}
+    <ul>
+        {% for app in applications %}
+            <li style="margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
+                <p>
+                    <strong>Волонтёр:</strong>
+                    {{ app.volunteer.user.username }}
+                </p>
+
+                <p>
+                    <strong>Мероприятие:</strong>
+                    {{ app.event.title }}
+                </p>
+
+                <p>
+                    <strong>Статус заявки:</strong>
+                    {{ app.get_status_display }}
+                </p>
+
+                <p>
+                    <strong>Рейтинг волонтёра:</strong>
+                    {{ app.volunteer.rating }}
+                </p>
+
+                {% if app.no_show_marked %}
+                    <p style="color: red;">
+                        Неявка отмечена
+                    </p>
+                {% endif %}
+
+                {% if app.status == 'approved' and not app.no_show_marked %}
+                    <a href="/applications/{{ app.id }}/no-show/"
+                       class="btn btn-secondary">
+                        Отметить неявку
+                    </a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Заявок пока нет.</p>
+{% endif %}
+
+{% endblock %}

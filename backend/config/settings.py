@@ -10,7 +10,10 @@ from datetime import timedelta
 # ======================================================
 # BASE DIR + ENV
 # ======================================================
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent  # корень проекта (где frontend/)
+
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-1234567890")
@@ -25,6 +28,7 @@ YANDEX_MAPS_API_KEY = os.getenv("YANDEX_MAPS_API_KEY")
 # ======================================================
 # APPLICATIONS
 # ======================================================
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,6 +51,7 @@ AUTH_USER_MODEL = 'api.CustomUser'
 # ======================================================
 # MIDDLEWARE
 # ======================================================
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -61,23 +66,25 @@ MIDDLEWARE = [
 # ======================================================
 # URLS / WSGI
 # ======================================================
-ROOT_URLCONF = 'config.urls'
 
+ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
 # ======================================================
 # TEMPLATES (frontend/templates)
 # ======================================================
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR.parent / 'frontend' / 'templates',
+            PROJECT_ROOT / 'frontend' / 'templates'
         ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -90,16 +97,18 @@ TEMPLATES = [
 # ======================================================
 # STATIC FILES (frontend/static)
 # ======================================================
+
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend' / 'static',
+    PROJECT_ROOT / 'frontend' / 'static',
 ]
 
 
 # ======================================================
 # DATABASE
 # ======================================================
+
 if os.getenv("USE_SQLITE", "True") == "True":
     DATABASES = {
         'default': {
@@ -123,6 +132,7 @@ else:
 # ======================================================
 # PASSWORD VALIDATION
 # ======================================================
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -134,6 +144,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ======================================================
 # INTERNATIONALIZATION
 # ======================================================
+
 LANGUAGE_CODE = 'ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
@@ -143,12 +154,14 @@ USE_TZ = True
 # ======================================================
 # DEFAULTS
 # ======================================================
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ======================================================
 # DRF + JWT
 # ======================================================
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',

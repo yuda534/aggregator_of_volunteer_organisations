@@ -1,7 +1,11 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg
 
+
+# ======================================================
+# USER
+# ======================================================
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
@@ -17,12 +21,13 @@ class CustomUser(AbstractUser):
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    groups = models.ManyToManyField(Group, related_name='custom_users', blank=True)
-    user_permissions = models.ManyToManyField(Permission, related_name='custom_users', blank=True)
-
     def __str__(self):
         return self.username
 
+
+# ======================================================
+# VOLUNTEER
+# ======================================================
 
 class VolunteerProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
@@ -41,6 +46,10 @@ class VolunteerProfile(models.Model):
     def __str__(self):
         return f"Volunteer: {self.user.username}"
 
+
+# ======================================================
+# ORGANIZATION
+# ======================================================
 
 class Organization(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
@@ -62,6 +71,10 @@ class Organization(models.Model):
     def __str__(self):
         return self.name
 
+
+# ======================================================
+# EVENT
+# ======================================================
 
 class Event(models.Model):
     STATUS_CHOICES = (
@@ -87,6 +100,10 @@ class Event(models.Model):
         return self.title
 
 
+# ======================================================
+# APPLICATION
+# ======================================================
+
 class VolunteerApplication(models.Model):
     STATUS_CHOICES = (
         ('pending', 'На рассмотрении'),
@@ -98,6 +115,8 @@ class VolunteerApplication(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
+
+    # заложено под автоматическое снижение рейтинга
     no_show_marked = models.BooleanField(default=False)
 
     class Meta:
@@ -106,6 +125,10 @@ class VolunteerApplication(models.Model):
     def __str__(self):
         return f"{self.volunteer} -> {self.event}"
 
+
+# ======================================================
+# REVIEWS (заложено на будущее)
+# ======================================================
 
 class VolunteerReview(models.Model):
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)

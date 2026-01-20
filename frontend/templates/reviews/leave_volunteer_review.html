@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Отзыв о волонтёре{% endblock %}
+
+{% block content %}
+<h1>Оставить отзыв о волонтёре: {{ volunteer.user.username }}</h1>
+<p>Мероприятие: {{ event.title }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить отзыв</button>
+</form>
+
+<a href="{% url 'organization_applications' %}">Вернуться к заявкам</a>
+{% endblock %}

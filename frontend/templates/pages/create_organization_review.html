@@ -1,0 +1,13 @@
+<h1>Отзыв об организации</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Оценка (1–5)</label><br>
+    <input type="number" name="rating" min="1" max="5" required><br><br>
+
+    <label>Комментарий</label><br>
+    <textarea name="comment"></textarea><br><br>
+
+    <button type="submit">Сохранить отзыв</button>
+</form>

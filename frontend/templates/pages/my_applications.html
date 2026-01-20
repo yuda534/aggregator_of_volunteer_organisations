@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои заявки — Go2Help{% endblock %}
+
+{% block content %}
+<h1>Мои заявки</h1>
+
+{% if applications %}
+    <ul>
+        {% for app in applications %}
+            <li style="margin-bottom: 15px;">
+                <strong>{{ app.event.title }}</strong><br>
+                Статус: {{ app.get_status_display }}<br>
+                Дата подачи: {{ app.applied_at }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Вы ещё не подали ни одной заявки.</p>
+{% endif %}
+
+<a href="/" class="btn btn-secondary">← На главную</a>
+{% endblock %}

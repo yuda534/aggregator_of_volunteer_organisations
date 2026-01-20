@@ -1,20 +1,40 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Главная — Go2Help{% endblock %}
+{% block title %}Go2Help{% endblock %}
 
 {% block content %}
-<h1>Добро пожаловать в Go2Help</h1>
-
-<p>
-    Платформа для поиска волонтёрских мероприятий и взаимодействия
-    между волонтёрами и волонтёрскими организациями.
-</p>
+<h1>Добро пожаловать, {% if user.is_authenticated %}{{ user.username }}{% else %}гость{% endif %}</h1>
 
 {% if user.is_authenticated %}
-    <p>Вы вошли как <strong>{{ user.username }}</strong></p>
-    <a href="/events/" class="btn">Смотреть мероприятия</a>
+    {% if user.user_type == 'volunteer' %}
+        <h2>Карта мероприятий</h2>
+        <a href="{% url 'map' %}">Открыть карту</a>
+
+        <h2>Последние мероприятия</h2>
+        <ul>
+            {% for event in latest_events %}
+                <li>
+                    <a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a>
+                    - {{ event.start_date|date:"d.m.Y H:i" }}
+                    <form method="post" action="{% url 'event_detail' event.pk %}">
+                        {% csrf_token %}
+                        <button type="submit">Подать заявку</button>
+                    </form>
+                </li>
+            {% empty %}
+                <li>Нет доступных мероприятий</li>
+            {% endfor %}
+        </ul>
+
+    {% elif user.user_type == 'organization' %}
+        <h2>Управление мероприятиями</h2>
+        <a href="{% url 'create_event' %}">Создать новое мероприятие</a>
+    {% endif %}
+
+    <h2>Ваш профиль</h2>
+    <a href="{% url 'profile' user.pk %}">{{ user.username }}</a>
+
 {% else %}
-    <a href="/login/" class="btn">Войти</a>
-    <a href="/register/" class="btn btn-secondary">Регистрация</a>
+    <p>Пожалуйста, <a href="{% url 'login' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a></p>
 {% endif %}
 {% endblock %}

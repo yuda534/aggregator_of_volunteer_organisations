@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Создание мероприятия{% endblock %}
+
+{% block content %}
+<h1>Создать мероприятие</h1>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Создать</button>
+</form>
+
+<a href="{% url 'home' %}">Назад на главную</a>
+{% endblock %}

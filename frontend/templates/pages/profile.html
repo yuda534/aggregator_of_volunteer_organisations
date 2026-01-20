@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль — {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<h1>Профиль: {{ user_obj.username }}</h1>
+
+{% if user_obj.user_type == 'volunteer' %}
+    <p>Рейтинг: {{ profile.rating }}</p>
+    <p>Навыки: {{ profile.skills }}</p>
+    <p>Опыт: {{ profile.experience }}</p>
+
+    <h2>Ваши заявки</h2>
+    <ul>
+        {% for app in applications %}
+            <li>{{ app.event.title }} - {{ app.status }}</li>
+        {% empty %}
+            <li>Нет заявок</li>
+        {% endfor %}
+    </ul>
+
+{% elif user_obj.user_type == 'organization' %}
+    <p>Описание: {{ profile.description }}</p>
+    <p>Email: {{ profile.contact_email }}</p>
+    <p>Адрес: {{ profile.address }}</p>
+
+    <h2>Ваши мероприятия</h2>
+    <ul>
+        {% for event in events %}
+            <li><a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a></li>
+        {% empty %}
+            <li>Нет мероприятий</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% endblock %}
