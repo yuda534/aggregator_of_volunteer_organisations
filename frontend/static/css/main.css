@@ -1,216 +1,136 @@
-/* ===== GLOBAL ===== */
+/* ======================================================
+   GLOBAL
+   ====================================================== */
 body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f9;
-    color: #333;
-    line-height: 1.6;
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
 }
 
-a {
-    text-decoration: none;
-    color: #3498db;
-    transition: 0.3s;
+.app-main {
+    padding: 3rem 0;
 }
 
-a:hover {
-    color: #21618c;
+.app-footer {
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    padding: 2rem 0;
 }
 
-/* ===== CONTAINER ===== */
-.container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
+/* ======================================================
+   NAVBAR
+   ====================================================== */
+.navbar-brand {
+    font-size: 1.25rem;
 }
 
-/* ===== BUTTONS ===== */
-.btn {
+.brand-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #0d6efd;
+    border-radius: 50%;
     display: inline-block;
-    padding: 10px 18px;
-    background-color: #3498db;
+}
+
+/* ======================================================
+   TYPOGRAPHY
+   ====================================================== */
+h1, h2, h3, h4, h5 {
+    font-weight: 700;
+}
+
+.lead {
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+/* ======================================================
+   BUTTONS
+   ====================================================== */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    box-shadow: 0 6px 14px rgba(13,110,253,0.2);
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
     color: #fff;
-    border-radius: 5px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-    text-align: center;
 }
 
-.btn:hover {
-    background-color: #21618c;
-}
-
-.btn-secondary {
-    background-color: #7f8c8d;
-}
-
-.btn-secondary:hover {
-    background-color: #566573;
-}
-
-/* ===== NAVBAR ===== */
-.navbar {
-    background-color: #2c3e50;
-    padding: 15px 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.navbar-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    color: #ecf0f1;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.nav-links {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-links a, .nav-links span {
-    color: #ecf0f1;
-    font-weight: 500;
-}
-
-.nav-links a:hover {
-    text-decoration: underline;
-}
-
-/* ===== CARDS ===== */
+/* ======================================================
+   CARDS
+   ====================================================== */
 .card {
-    background: #ffffff;
-    border-radius: 8px;
-    padding: 25px;
-    margin-bottom: 25px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    transition: 0.3s;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.12);
 }
 
-/* ===== HEADINGS ===== */
-h1, h2, h3 {
-    margin: 0 0 15px 0;
+.card-title {
     font-weight: 600;
 }
 
-h1 {
-    font-size: 28px;
+.card-text {
+    color: #6c757d;
 }
 
-h2 {
-    font-size: 22px;
-}
-
-h3 {
-    font-size: 18px;
-}
-
-/* ===== FORM ELEMENTS ===== */
-form input, form select, form textarea {
-    width: 100%;
-    padding: 10px 12px;
-    margin-top: 6px;
-    margin-bottom: 12px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 15px;
-    transition: 0.3s;
-}
-
-form input:focus, form select:focus, form textarea:focus {
-    border-color: #3498db;
-    outline: none;
-}
-
-/* ===== TABLE ===== */
-table {
-    width: 100%;
-    border-collapse: collapse;
+/* ======================================================
+   LISTS / BADGES
+   ====================================================== */
+.badge {
     border-radius: 8px;
-    overflow: hidden;
-    background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-th, td {
-    padding: 14px 16px;
-    text-align: left;
-    font-size: 14px;
-}
-
-th {
-    background-color: #f0f2f5;
-    font-weight: bold;
-}
-
-tr:not(:last-child) {
-    border-bottom: 1px solid #e6e6e6;
-}
-
-/* ===== STATUS LABELS ===== */
-.status {
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 4px;
-}
-
-.status.pending {
-    background-color: #f1c40f;
-    color: #fff;
-}
-
-.status.approved {
-    background-color: #27ae60;
-    color: #fff;
-}
-
-.status.rejected {
-    background-color: #e74c3c;
-    color: #fff;
-}
-
-/* ===== EMPTY STATE ===== */
-.empty {
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 8px;
-    text-align: center;
-    color: #777;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-/* ===== BACK LINK ===== */
-.back-link {
-    display: inline-block;
-    margin-top: 20px;
-    color: #3498db;
+    padding: 0.4em 0.6em;
     font-weight: 500;
 }
 
-.back-link:hover {
-    text-decoration: underline;
-}
-
-/* ===== MAP ===== */
+/* ======================================================
+   MAP PAGE
+   ====================================================== */
 #map {
     width: 100%;
-    height: 75vh;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    height: 520px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background-color: #e9ecef;
+}
+
+/* ======================================================
+   FORMS
+   ====================================================== */
+.form-control,
+.form-select {
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13,110,253,.15);
+}
+
+/* ======================================================
+   TABLES
+   ====================================================== */
+.table {
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* ======================================================
+   UTILITIES
+   ====================================================== */
+.shadow-soft {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
 }

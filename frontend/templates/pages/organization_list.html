@@ -1,130 +1,95 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Организации</title>
+{% extends "base.html" %}
+{% block title %}Организации — Go2Help{% endblock %}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f6f8;
-            margin: 0;
-            padding: 0;
-        }
+{% block content %}
 
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+<!-- PAGE HEADER -->
+<section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="mb-1">Организации</h1>
+            <p class="text-muted mb-0">
+                Волонтёрские организации, публикующие мероприятия
+            </p>
+        </div>
+    </div>
+</section>
 
-        h1 {
-            margin-bottom: 25px;
-        }
+<!-- FILTERS -->
+<section class="mb-4">
+    <div class="card p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label">Поиск</label>
+                <input
+                    type="text"
+                    name="q"
+                    class="form-control"
+                    placeholder="Название или описание"
+                    value="{{ request.GET.q }}"
+                >
+            </div>
 
-        .org-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
+            <div class="col-md-4">
+                <label class="form-label">Город</label>
+                <input
+                    type="text"
+                    name="city"
+                    class="form-control"
+                    placeholder="Например, Москва"
+                    value="{{ request.GET.city }}"
+                >
+            </div>
 
-        .org-card {
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">
+                    Найти
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
 
-        .org-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .org-description {
-            color: #555;
-            margin-bottom: 15px;
-        }
-
-        .org-rating {
-            margin-bottom: 15px;
-            font-size: 16px;
-            color: #f39c12;
-        }
-
-        .details-link {
-            align-self: flex-start;
-            text-decoration: none;
-            color: #0066cc;
-            font-weight: bold;
-        }
-
-        .details-link:hover {
-            text-decoration: underline;
-        }
-
-        .empty {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            text-decoration: none;
-            color: #0066cc;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Волонтерские организации</h1>
-
+<!-- ORGANIZATION LIST -->
+<section>
     {% if organizations %}
-        <div class="org-list">
-            {% for organization in organizations %}
-                <div class="org-card">
-                    <div>
-                        <div class="org-name">
-                            {{ organization.name }}
-                        </div>
+        <div class="row g-4">
+            {% for org in organizations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">
+                                {{ org.name }}
+                            </h5>
 
-                        <div class="org-description">
-                            {{ organization.description|truncatechars:150 }}
-                        </div>
+                            <p class="card-text mb-3">
+                                {{ org.description|truncatechars:140 }}
+                            </p>
 
-                        <div class="org-rating">
-                            Рейтинг: {{ organization.rating }}
+                            <div class="mt-auto">
+                                <div class="small text-muted mb-3">
+                                    📍 {{ org.city }}<br>
+                                    📅 Мероприятий: {{ org.events_count }}
+                                </div>
+
+                                <a
+                                    href="{% url 'organization_detail' org.id %}"
+                                    class="btn btn-outline-primary w-100"
+                                >
+                                    Подробнее
+                                </a>
+                            </div>
                         </div>
                     </div>
-
-                    <a
-                        href="{% url 'organization_detail' organization.id %}"
-                        class="details-link"
-                    >
-                        Подробнее →
-                    </a>
                 </div>
             {% endfor %}
         </div>
     {% else %}
-        <div class="empty">
-            Пока нет зарегистрированных организаций.
+        <div class="text-center py-5 text-muted">
+            <h4 class="mb-2">Организации не найдены</h4>
+            <p class="mb-0">Попробуйте изменить параметры поиска</p>
         </div>
     {% endif %}
+</section>
 
-    <a href="/" class="back-link">← На главную</a>
-</div>
-
-</body>
-</html>
+{% endblock %}

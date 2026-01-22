@@ -1,102 +1,98 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ organization.name }}</title>
+{% extends "base.html" %}
+{% block title %}{{ organization.name }} — Go2Help{% endblock %}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f6f8;
-            margin: 0;
-            padding: 0;
-        }
+{% block content %}
 
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
+<!-- HEADER -->
+<section class="mb-4">
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">{{ organization.name }}</h1>
 
-        h1 {
-            margin-top: 0;
-        }
+                <div class="text-muted mb-2">
+                    {% if organization.address %}
+                        📍 {{ organization.address }}
+                    {% endif %}
+                </div>
 
-        .logo {
-            max-width: 150px;
-            margin-bottom: 20px;
-        }
+                <div class="fw-semibold">
+                    ⭐ Рейтинг: {{ organization.rating|default:"0.0" }}
+                </div>
+            </div>
 
-        .info {
-            margin-bottom: 15px;
-        }
-
-        .label {
-            font-weight: bold;
-        }
-
-        .rating {
-            font-size: 18px;
-            color: #f39c12;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            text-decoration: none;
-            color: #0066cc;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>{{ organization.name }}</h1>
-
-    {% if organization.logo %}
-        <img src="{{ organization.logo.url }}" alt="Логотип" class="logo">
-    {% endif %}
-
-    <div class="info">
-        <span class="label">Описание:</span>
-        <p>{{ organization.description }}</p>
+            {% if user.is_authenticated and user == organization.user %}
+                <div>
+                    <a href="{% url 'create_event' %}" class="btn btn-primary">
+                        Создать мероприятие
+                    </a>
+                </div>
+            {% endif %}
+        </div>
     </div>
+</section>
 
-    <div class="info">
-        <span class="label">Адрес:</span>
-        <p>{{ organization.address }}</p>
-    </div>
+<!-- DESCRIPTION -->
+<section class="mb-5">
+    <div class="card p-4">
+        <h4 class="mb-3">Об организации</h4>
 
-    <div class="info">
-        <span class="label">Контактный email:</span>
-        <p>{{ organization.contact_email }}</p>
-    </div>
-
-    {% if organization.website %}
-        <div class="info">
-            <span class="label">Сайт:</span>
-            <p>
-                <a href="{{ organization.website }}" target="_blank">
-                    {{ organization.website }}
-                </a>
+        {% if organization.description %}
+            <p class="mb-0">
+                {{ organization.description }}
             </p>
+        {% else %}
+            <p class="text-muted mb-0">
+                Описание не заполнено
+            </p>
+        {% endif %}
+    </div>
+</section>
+
+<!-- EVENTS -->
+<section>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Мероприятия</h3>
+    </div>
+
+    {% if organization.event_set.all %}
+        <div class="row g-4">
+            {% for event in organization.event_set.all %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">
+                                {{ event.title }}
+                            </h5>
+
+                            <p class="card-text mb-3">
+                                {{ event.description|truncatechars:120 }}
+                            </p>
+
+                            <div class="small text-muted mb-3">
+                                📅 {{ event.start_date|date:"d.m.Y H:i" }} –
+                                {{ event.end_date|date:"d.m.Y H:i" }}<br>
+                                📍 {{ event.location }}
+                            </div>
+
+                            <div class="mt-auto">
+                                <a
+                                    href="{% url 'event_detail' event.id %}"
+                                    class="btn btn-outline-primary w-100"
+                                >
+                                    Открыть мероприятие
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card p-4 text-center text-muted">
+            У организации пока нет мероприятий
         </div>
     {% endif %}
+</section>
 
-    <div class="info">
-        <span class="label">Рейтинг:</span>
-        <span class="rating">{{ organization.rating }}</span>
-    </div>
-
-    <a href="/organizations/" class="back-link">← Назад к списку организаций</a>
-</div>
-
-</body>
-</html>
+{% endblock %}

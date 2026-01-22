@@ -1,37 +1,182 @@
 {% extends "base.html" %}
-
-{% block title %}Профиль — {{ user_obj.username }}{% endblock %}
+{% block title %}Профиль — Go2Help{% endblock %}
 
 {% block content %}
-<h1>Профиль: {{ user_obj.username }}</h1>
 
-{% if user_obj.user_type == 'volunteer' %}
-    <p>Рейтинг: {{ profile.rating }}</p>
-    <p>Навыки: {{ profile.skills }}</p>
-    <p>Опыт: {{ profile.experience }}</p>
+<!-- PROFILE HEADER -->
+<section class="mb-4">
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">{{ user.get_full_name|default:user.username }}</h1>
+                <p class="text-muted mb-0">
+                    {% if user.role == 'volunteer' %}
+                        Волонтёр
+                    {% elif user.role == 'organization' %}
+                        Представитель организации
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <h2>Ваши заявки</h2>
-    <ul>
-        {% for app in applications %}
-            <li>{{ app.event.title }} - {{ app.status }}</li>
-        {% empty %}
-            <li>Нет заявок</li>
-        {% endfor %}
-    </ul>
+<div class="row g-4">
 
-{% elif user_obj.user_type == 'organization' %}
-    <p>Описание: {{ profile.description }}</p>
-    <p>Email: {{ profile.contact_email }}</p>
-    <p>Адрес: {{ profile.address }}</p>
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-4">
 
-    <h2>Ваши мероприятия</h2>
-    <ul>
-        {% for event in events %}
-            <li><a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a></li>
-        {% empty %}
-            <li>Нет мероприятий</li>
-        {% endfor %}
-    </ul>
-{% endif %}
+        <!-- INFO -->
+        <section class="mb-4">
+            <div class="card p-4">
+                <h5 class="mb-3">Основная информация</h5>
+
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0">
+                        Email: <strong>{{ user.email }}</strong>
+                    </li>
+                    {% if user.city %}
+                    <li class="list-group-item px-0">
+                        Город: <strong>{{ user.city }}</strong>
+                    </li>
+                    {% endif %}
+                    {% if user.phone %}
+                    <li class="list-group-item px-0">
+                        Телефон: <strong>{{ user.phone }}</strong>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </section>
+
+        <!-- RATING -->
+        {% if user.role == 'volunteer' %}
+        <section>
+            <div class="card p-4 text-center">
+                <h5 class="mb-3">Рейтинг</h5>
+                <h2 class="mb-0">{{ user.rating|default:"—" }}</h2>
+                <p class="text-muted small mt-1">на основе отзывов</p>
+            </div>
+        </section>
+        {% endif %}
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-8">
+
+        {% if user.role == 'volunteer' %}
+
+            <!-- VOLUNTEER APPLICATIONS -->
+            <section class="mb-4">
+                <div class="card p-4">
+                    <h4 class="mb-3">Мои заявки</h4>
+
+                    {% if applications %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Мероприятие</th>
+                                        <th>Организация</th>
+                                        <th>Статус</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for app in applications %}
+                                    <tr>
+                                        <td>{{ app.event.title }}</td>
+                                        <td>{{ app.event.organization.name }}</td>
+                                        <td>
+                                            {% if app.status == 'approved' %}
+                                                <span class="badge bg-success">Одобрена</span>
+                                            {% elif app.status == 'rejected' %}
+                                                <span class="badge bg-danger">Отклонена</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">На рассмотрении</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a
+                                                href="{% url 'event_detail' app.event.id %}"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                Открыть
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            Вы ещё не подавали заявки на мероприятия
+                        </p>
+                    {% endif %}
+                </div>
+            </section>
+
+        {% elif user.role == 'organization' %}
+
+            <!-- ORGANIZATION EVENTS -->
+            <section class="mb-4">
+                <div class="card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">Мои мероприятия</h4>
+                        <a href="{% url 'create_event' %}" class="btn btn-sm btn-primary">
+                            + Создать
+                        </a>
+                    </div>
+
+                    {% if events %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Город</th>
+                                        <th>Статус</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                    <tr>
+                                        <td>{{ event.title }}</td>
+                                        <td>{{ event.city }}</td>
+                                        <td>
+                                            {% if event.is_open %}
+                                                <span class="badge bg-success">Открыто</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Закрыто</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a
+                                                href="{% url 'event_detail' event.id %}"
+                                                class="btn btn-sm btn-outline-primary"
+                                            >
+                                                Открыть
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            Вы ещё не создали ни одного мероприятия
+                        </p>
+                    {% endif %}
+                </div>
+            </section>
+
+        {% endif %}
+
+    </div>
+</div>
 
 {% endblock %}

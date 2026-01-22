@@ -1,25 +1,117 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block title %}Мероприятия — Go2Help{% endblock %}
 
 {% block content %}
-<h1>Мероприятия</h1>
 
-{% if events %}
-    <ul>
-        {% for event in events %}
-            <li style="margin-bottom: 20px;">
-                <h3>
-                    <a href="/events/{{ event.id }}/">
-                        {{ event.title }}
-                    </a>
-                </h3>
-                <p>{{ event.description|truncatechars:120 }}</p>
-                <small>{{ event.start_date }}</small>
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>Мероприятий пока нет.</p>
-{% endif %}
+<!-- PAGE HEADER -->
+<section class="mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+            <h1 class="mb-1">Мероприятия</h1>
+            <p class="text-muted mb-0">
+                Актуальные волонтёрские мероприятия от проверенных организаций
+            </p>
+        </div>
+
+        {% if user.is_authenticated and user.role == 'organization' %}
+            <a href="{% url 'create_event' %}" class="btn btn-primary px-4">
+                + Создать мероприятие
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- FILTERS -->
+<section class="mb-4">
+    <div class="card p-3">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Поиск</label>
+                <input
+                    type="text"
+                    name="q"
+                    class="form-control"
+                    placeholder="Название или описание"
+                    value="{{ request.GET.q }}"
+                >
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Город</label>
+                <input
+                    type="text"
+                    name="city"
+                    class="form-control"
+                    placeholder="Например, Москва"
+                    value="{{ request.GET.city }}"
+                >
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-select">
+                    <option value="">Все</option>
+                    <option value="open">Открыто</option>
+                    <option value="closed">Закрыто</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-outline-primary">
+                    Применить
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- EVENT LIST -->
+<section>
+    {% if events %}
+        <div class="row g-4">
+            {% for event in events %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">
+                                    {{ event.title }}
+                                </h5>
+                                {% if event.is_open %}
+                                    <span class="badge bg-success">Открыто</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Закрыто</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="card-text mt-2">
+                                {{ event.description|truncatechars:120 }}
+                            </p>
+
+                            <div class="mt-auto">
+                                <div class="small text-muted mb-3">
+                                    📍 {{ event.city }}<br>
+                                    🏢 {{ event.organization.name }}
+                                </div>
+
+                                <a
+                                    href="{% url 'event_detail' event.id %}"
+                                    class="btn btn-outline-primary w-100"
+                                >
+                                    Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 text-muted">
+            <h4 class="mb-2">Мероприятия не найдены</h4>
+            <p class="mb-0">Попробуйте изменить параметры поиска</p>
+        </div>
+    {% endif %}
+</section>
+
 {% endblock %}

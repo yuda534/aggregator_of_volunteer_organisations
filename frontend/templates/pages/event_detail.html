@@ -1,27 +1,154 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block title %}{{ event.title }} — Go2Help{% endblock %}
 
 {% block content %}
-<h1>{{ event.title }}</h1>
 
-<p>{{ event.description }}</p>
+<!-- EVENT HEADER -->
+<section class="mb-4">
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="mb-2">{{ event.title }}</h1>
+                <div class="text-muted">
+                    🏢
+                    <a href="{% url 'organization_detail' event.organization.id %}"
+                       class="text-decoration-none">
+                        {{ event.organization.name }}
+                    </a>
+                    &nbsp;•&nbsp;
+                    📍 {{ event.city }}
+                </div>
+            </div>
 
-<p><strong>Дата начала:</strong> {{ event.start_date }}</p>
-<p><strong>Дата окончания:</strong> {{ event.end_date }}</p>
-<p><strong>Место:</strong> {{ event.location }}</p>
-<p><strong>Организация:</strong> {{ event.organization.name }}</p>
+            {% if event.is_open %}
+                <span class="badge bg-success fs-6">Набор открыт</span>
+            {% else %}
+                <span class="badge bg-secondary fs-6">Набор закрыт</span>
+            {% endif %}
+        </div>
+    </div>
+</section>
 
-<hr>
+<div class="row g-4">
 
-{% if user.is_authenticated %}
-    <form method="post">
-        {% csrf_token %}
-        <button class="btn" type="submit">Подать заявку</button>
-    </form>
-{% else %}
-    <p>Войдите, чтобы подать заявку.</p>
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-8">
+
+        <!-- DESCRIPTION -->
+        <section class="mb-4">
+            <div class="card p-4">
+                <h4 class="mb-3">Описание мероприятия</h4>
+                <p class="mb-0">
+                    {{ event.description|linebreaks }}
+                </p>
+            </div>
+        </section>
+
+        <!-- DETAILS -->
+        <section class="mb-4">
+            <div class="card p-4">
+                <h4 class="mb-3">Детали</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0">
+                        📅 Дата: <strong>{{ event.date }}</strong>
+                    </li>
+                    <li class="list-group-item px-0">
+                        ⏰ Время: <strong>{{ event.time }}</strong>
+                    </li>
+                    <li class="list-group-item px-0">
+                        👥 Требуется волонтёров:
+                        <strong>{{ event.required_volunteers }}</strong>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- MAP -->
+        {% if event.latitude and event.longitude %}
+        <section class="mb-4">
+            <div class="card p-4">
+                <h4 class="mb-3">Место проведения</h4>
+                <div id="map"></div>
+            </div>
+        </section>
+        {% endif %}
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-4">
+
+        <!-- ACTION CARD -->
+        <section class="mb-4">
+            <div class="card p-4 text-center">
+                {% if user.is_authenticated %}
+                    {% if user.role == 'volunteer' %}
+                        {% if event.is_open %}
+                            <form method="post" action="{% url 'apply_event' event.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    Подать заявку
+                                </button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                Набор закрыт
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted mb-0">
+                            Заявки могут подавать только волонтёры
+                        </p>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg w-100">
+                        Войти, чтобы подать заявку
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- ORGANIZATION CARD -->
+        <section>
+            <div class="card p-4">
+                <h5 class="mb-3">Организация</h5>
+                <p class="mb-2 fw-semibold">{{ event.organization.name }}</p>
+                <p class="text-muted mb-3">
+                    {{ event.organization.description|truncatechars:120 }}
+                </p>
+                <a
+                    href="{% url 'organization_detail' event.organization.id %}"
+                    class="btn btn-outline-secondary w-100"
+                >
+                    Подробнее об организации
+                </a>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+{% if event.latitude and event.longitude %}
+<script>
+    function initMap() {
+        const location = { lat: {{ event.latitude }}, lng: {{ event.longitude }} };
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 14,
+            center: location,
+        });
+
+        new google.maps.Marker({
+            position: location,
+            map: map,
+        });
+    }
+</script>
+
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    async defer>
+</script>
 {% endif %}
 
-<a href="/events/" class="btn btn-secondary">← Назад</a>
 {% endblock %}

@@ -1,40 +1,113 @@
 {% extends "base.html" %}
-
-{% block title %}Go2Help{% endblock %}
+{% block title %}Go2Help — платформа для волонтёров{% endblock %}
 
 {% block content %}
-<h1>Добро пожаловать, {% if user.is_authenticated %}{{ user.username }}{% else %}гость{% endif %}</h1>
 
-{% if user.is_authenticated %}
-    {% if user.user_type == 'volunteer' %}
-        <h2>Карта мероприятий</h2>
-        <a href="{% url 'map' %}">Открыть карту</a>
+<!-- HERO SECTION -->
+<section class="mb-5">
+    <div class="p-5 rounded-4 bg-white shadow-soft">
+        <div class="row align-items-center g-4">
+            <div class="col-12">
+                <h1 class="display-5 mb-3">
+                    Объединяем волонтёров <br class="d-none d-md-block">
+                    и волонтёрские организации
+                </h1>
 
-        <h2>Последние мероприятия</h2>
-        <ul>
-            {% for event in latest_events %}
-                <li>
-                    <a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a>
-                    - {{ event.start_date|date:"d.m.Y H:i" }}
-                    <form method="post" action="{% url 'event_detail' event.pk %}">
-                        {% csrf_token %}
-                        <button type="submit">Подать заявку</button>
-                    </form>
-                </li>
-            {% empty %}
-                <li>Нет доступных мероприятий</li>
-            {% endfor %}
-        </ul>
+                <p class="lead mb-4">
+                    Go2Help — это платформа, где волонтёры находят мероприятия,
+                    а организации — надёжных помощников.
+                </p>
 
-    {% elif user.user_type == 'organization' %}
-        <h2>Управление мероприятиями</h2>
-        <a href="{% url 'create_event' %}">Создать новое мероприятие</a>
-    {% endif %}
+                <div class="d-flex gap-3 flex-wrap">
 
-    <h2>Ваш профиль</h2>
-    <a href="{% url 'profile' user.pk %}">{{ user.username }}</a>
+                    {# НЕ АВТОРИЗОВАН #}
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'event_list' %}" class="btn btn-primary btn-lg px-4">
+                            Найти мероприятие
+                        </a>
+                        <a href="{% url 'organization_list' %}" class="btn btn-outline-primary btn-lg px-4">
+                            Организации
+                        </a>
+                        <a href="{% url 'volunteer_list' %}" class="btn btn-outline-primary btn-lg px-4">
+                            Волонтёры
+                        </a>
 
-{% else %}
-    <p>Пожалуйста, <a href="{% url 'login' %}">войдите</a> или <a href="{% url 'register' %}">зарегистрируйтесь</a></p>
+                    {# ВОЛОНТЁР #}
+                    {% elif user.user_type == 'volunteer' %}
+                        <a href="{% url 'event_list' %}" class="btn btn-primary btn-lg px-4">
+                            Найти мероприятие
+                        </a>
+                        <a href="{% url 'organization_list' %}" class="btn btn-outline-primary btn-lg px-4">
+                            Организации
+                        </a>
+
+                    {# ОРГАНИЗАЦИЯ #}
+                    {% elif user.user_type == 'organization' %}
+                        <a href="{% url 'create_event' %}" class="btn btn-primary btn-lg px-4">
+                            Создать мероприятие
+                        </a>
+                        <a href="{% url 'volunteer_list' %}" class="btn btn-outline-primary btn-lg px-4">
+                            Волонтёры
+                        </a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="mb-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <h4 class="mb-3">Для волонтёров</h4>
+                <p class="text-muted">
+                    Просматривайте мероприятия, подавайте заявки,
+                    получайте отзывы и формируйте рейтинг.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <h4 class="mb-3">Для организаций</h4>
+                <p class="text-muted">
+                    Создавайте мероприятия, отбирайте волонтёров
+                    и оставляйте отзывы по итогам участия.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-4">
+                <h4 class="mb-3">Прозрачность</h4>
+                <p class="text-muted">
+                    Рейтинги, отзывы и история участия —
+                    всё для доверия между сторонами.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA: ТОЛЬКО ДЛЯ НЕАВТОРИЗОВАННЫХ -->
+{% if not user.is_authenticated %}
+<section>
+    <div class="card p-5 text-center bg-primary text-white">
+        <h2 class="mb-3">Готовы начать?</h2>
+        <p class="mb-4 opacity-75">
+            Зарегистрируйтесь и станьте частью волонтёрского сообщества
+        </p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'register' %}" class="btn btn-light btn-lg px-4">
+                Регистрация
+            </a>
+            <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-4">
+                Войти
+            </a>
+        </div>
+    </div>
+</section>
 {% endif %}
+
 {% endblock %}

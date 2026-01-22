@@ -1,47 +1,71 @@
 {% extends "base.html" %}
-
 {% block title %}Регистрация — Go2Help{% endblock %}
 
 {% block content %}
-<h1>Регистрация</h1>
 
-<form method="post">
-    {% csrf_token %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="card shadow-sm p-4 mt-5">
+            <h2 class="text-center mb-4">Регистрация в Go2Help</h2>
 
-    {# Общие ошибки формы #}
-    {% if form.non_field_errors %}
-        <div style="color: red; margin-bottom: 10px;">
-            {{ form.non_field_errors }}
-        </div>
-    {% endif %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
 
-    {# Поля UserCreationForm #}
-    {% for field in form %}
-        {% if field.name != 'user_type' %}
-            <div style="margin-bottom: 12px;">
-                <label><strong>{{ field.label }}</strong></label><br>
-                {{ field }}
-                {% if field.errors %}
-                    <div style="color: red;">{{ field.errors }}</div>
-                {% endif %}
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <!-- USERNAME -->
+                <div class="mb-3">
+                    <label class="form-label">Логин</label>
+                    {{ form.username }}
+                    {% for error in form.username.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    {{ form.password1 }}
+                    {% for error in form.password1.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- PASSWORD CONFIRM -->
+                <div class="mb-3">
+                    <label class="form-label">Подтверждение пароля</label>
+                    {{ form.password2 }}
+                    {% for error in form.password2.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- USER TYPE -->
+                <div class="mb-4">
+                    <label class="form-label">Тип аккаунта</label>
+                    {{ form.user_type }}
+                    {% for error in form.user_type.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary">
+                        Создать аккаунт
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center text-muted">
+                Уже есть аккаунт?
+                <a href="{% url 'login' %}">Войти</a>
             </div>
-        {% endif %}
-    {% endfor %}
-
-    {# Поле выбора user_type #}
-    <div style="margin-bottom: 15px;">
-        <label for="user_type"><strong>Тип пользователя</strong></label><br>
-        <select name="user_type" id="user_type" required>
-            <option value="">— выберите —</option>
-            <option value="volunteer" {% if request.POST.user_type == "volunteer" %}selected{% endif %}>Волонтёр</option>
-            <option value="organization" {% if request.POST.user_type == "organization" %}selected{% endif %}>Организация</option>
-        </select>
+        </div>
     </div>
+</div>
 
-    <button type="submit">Зарегистрироваться</button>
-</form>
-
-<p style="margin-top: 15px;">
-    Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
-</p>
 {% endblock %}
