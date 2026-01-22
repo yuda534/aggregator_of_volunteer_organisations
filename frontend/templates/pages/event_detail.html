@@ -16,11 +16,11 @@
                         {{ event.organization.name }}
                     </a>
                     &nbsp;•&nbsp;
-                    📍 {{ event.city }}
+                    📍 {{ event.location }}
                 </div>
             </div>
 
-            {% if event.is_open %}
+            {% if is_open %}
                 <span class="badge bg-success fs-6">Набор открыт</span>
             {% else %}
                 <span class="badge bg-secondary fs-6">Набор закрыт</span>
@@ -50,10 +50,8 @@
                 <h4 class="mb-3">Детали</h4>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item px-0">
-                        📅 Дата: <strong>{{ event.date }}</strong>
-                    </li>
-                    <li class="list-group-item px-0">
-                        ⏰ Время: <strong>{{ event.time }}</strong>
+                        📅 Дата и время:
+                        <strong>{{ event.start_date|date:"d.m.Y H:i" }}</strong>
                     </li>
                     <li class="list-group-item px-0">
                         👥 Требуется волонтёров:
@@ -68,7 +66,7 @@
         <section class="mb-4">
             <div class="card p-4">
                 <h4 class="mb-3">Место проведения</h4>
-                <div id="map"></div>
+                <div id="map" style="height: 300px;"></div>
             </div>
         </section>
         {% endif %}
@@ -82,9 +80,9 @@
         <section class="mb-4">
             <div class="card p-4 text-center">
                 {% if user.is_authenticated %}
-                    {% if user.role == 'volunteer' %}
-                        {% if event.is_open %}
-                            <form method="post" action="{% url 'apply_event' event.id %}">
+                    {% if user.user_type == 'volunteer' %}
+                        {% if is_open %}
+                            <form method="post">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-primary btn-lg w-100">
                                     Подать заявку

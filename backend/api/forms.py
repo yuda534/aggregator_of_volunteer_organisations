@@ -1,17 +1,20 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import CustomUser, VolunteerProfile, Organization, Event, VolunteerApplication, VolunteerReview, OrganizationReview
+from .models import (
+    CustomUser,
+    VolunteerProfile,
+    Organization,
+    Event,
+    VolunteerApplication,
+    VolunteerReview,
+    OrganizationReview
+)
 
 # =========================
 # РЕГИСТРАЦИЯ
 # =========================
 
 class RegisterForm(UserCreationForm):
-    """
-    Форма регистрации для всех типов пользователей.
-    Поле user_type задаётся через select в HTML.
-    """
-
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = ('username', 'password1', 'password2', 'user_type')
@@ -26,55 +29,64 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError("Выберите корректный тип пользователя")
         return user_type
 
-# =========================
-# ПРОФИЛЬ ВОЛОНТЁРА
-# =========================
-
-class VolunteerProfileForm(forms.ModelForm):
-    class Meta:
-        model = VolunteerProfile
-        fields = ('skills', 'experience', 'date_of_birth')
-        labels = {
-            'skills': 'Навыки',
-            'experience': 'Опыт',
-            'date_of_birth': 'Дата рождения',
-        }
-
-# =========================
-# ОРГАНИЗАЦИЯ
-# =========================
-
-class OrganizationForm(forms.ModelForm):
-    class Meta:
-        model = Organization
-        fields = ('name', 'description', 'website', 'contact_email', 'address')
-        labels = {
-            'name': 'Название организации',
-            'description': 'Описание',
-            'website': 'Сайт',
-            'contact_email': 'Email',
-            'address': 'Адрес',
-        }
 
 # =========================
 # МЕРОПРИЯТИЕ
 # =========================
 
 class EventForm(forms.ModelForm):
+    start_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control'
+        }),
+        label='Дата начала'
+    )
+
+    end_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control'
+        }),
+        label='Дата окончания'
+    )
+
     class Meta:
         model = Event
-        fields = ('title', 'description', 'start_date', 'end_date', 'location', 'required_volunteers')
+        fields = (
+            'title',
+            'description',
+            'start_date',
+            'end_date',
+            'location',
+            'required_volunteers',
+            'latitude',
+            'longitude',
+        )
         labels = {
-            'title': 'Название',
+            'title': 'Название мероприятия',
             'description': 'Описание',
-            'start_date': 'Дата начала',
-            'end_date': 'Дата окончания',
-            'location': 'Место проведения',
-            'required_volunteers': 'Требуется волонтёров',
+            'location': 'Адрес',
+            'required_volunteers': 'Количество волонтёров',
+        }
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4
+            }),
+            'location': forms.TextInput(attrs={'class': 'form-control'}),
+            'required_volunteers': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1
+            }),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
         }
 
+
 # =========================
-# ЗАЯВКА
+# ПРОЧЕЕ (без изменений)
 # =========================
 
 class VolunteerApplicationForm(forms.ModelForm):
@@ -82,24 +94,14 @@ class VolunteerApplicationForm(forms.ModelForm):
         model = VolunteerApplication
         fields = ()
 
-# =========================
-# ОТЗЫВЫ
-# =========================
 
 class VolunteerReviewForm(forms.ModelForm):
     class Meta:
         model = VolunteerReview
         fields = ('rating', 'comment')
-        labels = {
-            'rating': 'Оценка',
-            'comment': 'Комментарий',
-        }
+
 
 class OrganizationReviewForm(forms.ModelForm):
     class Meta:
         model = OrganizationReview
         fields = ('rating', 'comment')
-        labels = {
-            'rating': 'Оценка',
-            'comment': 'Комментарий',
-        }

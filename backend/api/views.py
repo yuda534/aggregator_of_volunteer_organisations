@@ -77,14 +77,26 @@ def event_list_view(request):
 def event_detail_view(request, pk):
     event = get_object_or_404(Event, pk=pk)
 
+    approved_count = VolunteerApplication.objects.filter(
+        event=event,
+        status='approved'
+    ).count()
+
+    is_open = (
+        event.status == 'active'
+        and approved_count < event.required_volunteers
+    )
+
     if request.method == 'POST':
         if not request.user.is_authenticated:
             return redirect('login')
+
         if request.user.user_type != 'volunteer':
             messages.error(request, 'Только волонтёры могут подавать заявки')
             return redirect('event_detail', pk=pk)
-        if event.status != 'active':
-            messages.error(request, 'На это мероприятие нельзя подать заявку')
+
+        if not is_open:
+            messages.error(request, 'Набор на это мероприятие закрыт')
             return redirect('event_detail', pk=pk)
 
         volunteer = get_object_or_404(VolunteerProfile, user=request.user)
@@ -97,7 +109,11 @@ def event_detail_view(request, pk):
         messages.success(request, 'Заявка успешно отправлена')
         return redirect('event_detail', pk=pk)
 
-    return render(request, 'pages/event_detail.html', {'event': event})
+    return render(request, 'pages/event_detail.html', {
+        'event': event,
+        'is_open': is_open,
+    })
+
 
 
 def organization_list_view(request):

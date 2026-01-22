@@ -1,103 +1,108 @@
 {% extends "base.html" %}
-{% block title %}Создать мероприятие — Go2Help{% endblock %}
+{% load static %}
 
 {% block content %}
+<div class="container mt-5" style="max-width: 800px;">
 
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
+    <h2 class="mb-4">Создание мероприятия</h2>
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">Создание мероприятия</h2>
-                <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">
-                    Назад к мероприятиям
-                </a>
-            </div>
+    <form method="post">
+        {% csrf_token %}
 
-            <div class="card shadow-sm">
-                <div class="card-body">
-
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">
-                            {{ form.non_field_errors }}
-                        </div>
-                    {% endif %}
-
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-
-                        <!-- TITLE -->
-                        <div class="mb-3">
-                            <label class="form-label">Название мероприятия</label>
-                            {{ form.title }}
-                            {% for error in form.title.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- DESCRIPTION -->
-                        <div class="mb-3">
-                            <label class="form-label">Описание</label>
-                            {{ form.description }}
-                            {% for error in form.description.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="row">
-                            <!-- DATE -->
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Дата проведения</label>
-                                {{ form.date }}
-                                {% for error in form.date.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-
-                            <!-- CAPACITY -->
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Количество волонтёров</label>
-                                {{ form.capacity }}
-                                {% for error in form.capacity.errors %}
-                                    <div class="text-danger small">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- ADDRESS -->
-                        <div class="mb-3">
-                            <label class="form-label">Адрес</label>
-                            {{ form.address }}
-                            {% for error in form.address.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- MAP PLACEHOLDER -->
-                        <div class="mb-4">
-                            <label class="form-label">Местоположение на карте</label>
-                            <div class="border rounded bg-light d-flex align-items-center justify-content-center"
-                                 style="height: 260px;">
-                                <span class="text-muted">
-                                    Здесь будет интерактивная карта
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- SUBMIT -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                Создать мероприятие
-                            </button>
-                        </div>
-
-                    </form>
-
-                </div>
-            </div>
-
+        <!-- Название -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Название мероприятия</strong></label>
+            {{ form.title }}
         </div>
-    </div>
+
+        <!-- Описание -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Описание</strong></label>
+            {{ form.description }}
+        </div>
+
+        <!-- Дата начала -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Дата начала</strong></label>
+            {{ form.start_date }}
+        </div>
+
+        <!-- Дата окончания -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Дата окончания</strong></label>
+            {{ form.end_date }}
+        </div>
+
+        <!-- Количество волонтёров -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Количество волонтёров</strong></label>
+            {{ form.required_volunteers }}
+        </div>
+
+        <!-- Адрес -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Адрес</strong></label>
+            {{ form.location }}
+        </div>
+
+        <!-- Карта -->
+        <div class="mb-3">
+            <label class="form-label"><strong>Местоположение на карте</strong></label>
+            <div id="map"
+                 style="height: 300px;"
+                 class="border rounded">
+            </div>
+        </div>
+
+        <!-- Скрытые поля координат -->
+        {{ form.latitude }}
+        {{ form.longitude }}
+
+        <button type="submit" class="btn btn-primary mt-3">
+            Создать мероприятие
+        </button>
+    </form>
 </div>
+
+<!-- Яндекс.Карта -->
+<script>
+    ymaps.ready(init);
+
+    function init() {
+        const map = new ymaps.Map("map", {
+            center: [55.751574, 37.573856], // Москва
+            zoom: 10
+        });
+
+        let placemark = null;
+
+        map.events.add('click', function (e) {
+            const coords = e.get('coords');
+
+            if (placemark) {
+                placemark.geometry.setCoordinates(coords);
+            } else {
+                placemark = new ymaps.Placemark(coords, {}, {
+                    preset: 'islands#redIcon',
+                    draggable: true
+                });
+
+                map.geoObjects.add(placemark);
+
+                placemark.events.add('dragend', function () {
+                    const newCoords = placemark.geometry.getCoordinates();
+                    setCoordinates(newCoords);
+                });
+            }
+
+            setCoordinates(coords);
+        });
+
+        function setCoordinates(coords) {
+            document.getElementById('id_latitude').value = coords[0];
+            document.getElementById('id_longitude').value = coords[1];
+        }
+    }
+</script>
 
 {% endblock %}
