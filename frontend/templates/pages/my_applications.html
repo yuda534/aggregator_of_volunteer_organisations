@@ -57,17 +57,10 @@
                             </td>
 
                             <td class="text-end">
-                                <a href="{% url 'application_detail' application.id %}"
+                                <a href="{% url 'event_detail' application.event.id %}"
                                    class="btn btn-sm btn-outline-secondary">
-                                    Подробнее
+                                    Открыть мероприятие
                                 </a>
-
-                                {% if application.status == "pending" %}
-                                    <a href="{% url 'cancel_application' application.id %}"
-                                       class="btn btn-sm btn-outline-danger ms-1">
-                                        Отменить
-                                    </a>
-                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}

@@ -2,7 +2,15 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from .forms import RegisterForm, VolunteerReviewForm, OrganizationReviewForm, EventForm
+from .forms import (
+    RegisterForm, 
+    VolunteerReviewForm, 
+    OrganizationReviewForm, 
+    EventForm,
+    UserProfileForm,            
+    VolunteerProfileForm,       
+    OrganizationProfileForm    
+)
 from .models import (
     CustomUser, Event, Organization, VolunteerProfile,
     VolunteerApplication, VolunteerReview, OrganizationReview
@@ -181,9 +189,9 @@ def register_view(request):
                 Organization.objects.create(
                     user=user,
                     name=user.username,
-                    description='',
-                    contact_email=user.email or 'example@example.com',
-                    address=''
+                    description='Организация зарегистрирована в Go2Help',
+                    contact_email=user.email if user.email else '',
+                    address='Адрес будет указан позже'
                 )
             login(request, user)
             return redirect('home')
@@ -362,4 +370,44 @@ def leave_organization_review_view(request, event_id, organization_id):
         'form': form,
         'organization': organization,
         'event': event
+    })
+
+
+# В backend/api/views.py добавь:
+
+def edit_profile_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    user = request.user
+    if request.method == 'POST':
+        user_form = UserProfileForm(request.POST, request.FILES, instance=user)
+        
+        if user_form.is_valid():
+            user_form.save()
+            
+            if user.user_type == 'volunteer':
+                profile = get_object_or_404(VolunteerProfile, user=user)
+                profile_form = VolunteerProfileForm(request.POST, instance=profile)
+            else:
+                profile = get_object_or_404(Organization, user=user)
+                profile_form = OrganizationProfileForm(request.POST, request.FILES, instance=profile)
+            
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Профиль успешно обновлён')
+                return redirect('profile', user_id=user.id)
+    else:
+        user_form = UserProfileForm(instance=user)
+        
+        if user.user_type == 'volunteer':
+            profile = get_object_or_404(VolunteerProfile, user=user)
+            profile_form = VolunteerProfileForm(instance=profile)
+        else:
+            profile = get_object_or_404(Organization, user=user)
+            profile_form = OrganizationProfileForm(instance=profile)
+    
+    return render(request, 'pages/edit_profile.html', {
+        'user_form': user_form,
+        'profile_form': profile_form,
     })

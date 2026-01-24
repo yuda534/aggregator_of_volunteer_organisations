@@ -18,12 +18,18 @@
                 </p>
             </div>
 
-            {% if user.user_type == 'organization' %}
-                <a href="{% url 'organization_applications' %}"
-                   class="btn btn-primary">
-                    Заявки на мероприятия
+            <div class="d-flex gap-2">
+                <a href="{% url 'edit_profile' %}" class="btn btn-outline-secondary">
+                    Редактировать профиль
                 </a>
-            {% endif %}
+                
+                {% if user.user_type == 'organization' %}
+                    <a href="{% url 'organization_applications' %}"
+                       class="btn btn-primary">
+                        Заявки на мероприятия
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </section>
@@ -130,9 +136,11 @@
                 <div class="card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h4 class="mb-0">Мои мероприятия</h4>
-                        <a href="{% url 'create_event' %}" class="btn btn-sm btn-primary">
-                            + Создать
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'create_event' %}" class="btn btn-sm btn-primary">
+                                + Создать
+                            </a>
+                        </div>
                     </div>
 
                     {% if events %}
@@ -142,6 +150,7 @@
                                     <tr>
                                         <th>Название</th>
                                         <th>Статус</th>
+                                        <th>Волонтёры</th>
                                         <th></th>
                                     </tr>
                                 </thead>
@@ -152,9 +161,16 @@
                                         <td>
                                             {% if event.status == 'active' %}
                                                 <span class="badge bg-success">Активно</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Не активно</span>
+                                            {% elif event.status == 'draft' %}
+                                                <span class="badge bg-secondary">Черновик</span>
+                                            {% elif event.status == 'completed' %}
+                                                <span class="badge bg-info">Завершено</span>
+                                            {% elif event.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Отменено</span>
                                             {% endif %}
+                                        </td>
+                                        <td>
+                                            {{ event.approved_count }}/{{ event.required_volunteers }}
                                         </td>
                                         <td class="text-end">
                                             <a href="{% url 'event_detail' event.id %}"

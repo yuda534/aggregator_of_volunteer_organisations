@@ -40,4 +40,6 @@ urlpatterns = [
 
     # Create Event
     path('create-event/', views.create_event_view, name='create_event'),
+
+    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
 ]

@@ -30,18 +30,16 @@ class UserSerializer(serializers.ModelSerializer):
             'password': {'write_only': True},
             'is_verified': {'read_only': True},
             'created_at': {'read_only': True},
+            'user_type': {'read_only': True},  # ← ДОБАВЬ ЭТУ СТРОКУ
         }
 
-    # НАЧАЛО ИЗМЕНЕНИЯ: сохранение user_type только при создании
     def create(self, validated_data):
         password = validated_data.pop('password')
-        user_type = validated_data.pop('user_type')
-
-        user = CustomUser(**validated_data, user_type=user_type)
+        # user_type теперь read_only, но при создании через форму всё равно передаётся
+        user = CustomUser(**validated_data)
         user.set_password(password)
         user.save()
         return user
-    # КОНЕЦ ИЗМЕНЕНИЯ: сохранение user_type только при создании
 
 
 class VolunteerProfileSerializer(serializers.ModelSerializer):

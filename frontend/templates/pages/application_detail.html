@@ -7,7 +7,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Заявка на участие</h2>
-        <a href="{% url 'application_list' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'organization_applications' %}" class="btn btn-outline-secondary">
             К списку заявок
         </a>
     </div>
@@ -88,11 +88,11 @@
                         </span>
 
                         <div class="d-grid gap-2 mt-3">
-                            <a href="{% url 'approve_application' application.id %}"
+                            <a href="{% url 'update_application_status' application.id 'approved' %}"
                                class="btn btn-success">
                                 Одобрить
                             </a>
-                            <a href="{% url 'reject_application' application.id %}"
+                            <a href="{% url 'update_application_status' application.id 'rejected' %}"
                                class="btn btn-danger">
                                 Отклонить
                             </a>

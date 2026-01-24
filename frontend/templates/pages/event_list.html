@@ -13,7 +13,7 @@
             </p>
         </div>
 
-        {% if user.is_authenticated and user.role == 'organization' %}
+        {% if user.is_authenticated and user.user_type == 'organization' %}
             <a href="{% url 'create_event' %}" class="btn btn-primary px-4">
                 + Создать мероприятие
             </a>
@@ -37,23 +37,26 @@
             </div>
 
             <div class="col-md-3">
-                <label class="form-label">Город</label>
-                <input
-                    type="text"
-                    name="city"
-                    class="form-control"
-                    placeholder="Например, Москва"
-                    value="{{ request.GET.city }}"
-                >
-            </div>
-
-            <div class="col-md-3">
                 <label class="form-label">Статус</label>
                 <select name="status" class="form-select">
                     <option value="">Все</option>
-                    <option value="open">Открыто</option>
-                    <option value="closed">Закрыто</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>
+                        Активные
+                    </option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>
+                        Завершённые
+                    </option>
                 </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Дата с</label>
+                <input
+                    type="date"
+                    name="start_date"
+                    class="form-control"
+                    value="{{ request.GET.start_date }}"
+                >
             </div>
 
             <div class="col-md-2 d-grid">
@@ -90,16 +93,32 @@
 
                             <div class="mt-auto">
                                 <div class="small text-muted mb-3">
-                                    📍 {{ event.city }}<br>
-                                    🏢 {{ event.organization.name }}
+                                    <div class="mb-1">
+                                        📍 {{ event.location }}
+                                    </div>
+                                    <div class="mb-1">
+                                        📅 {{ event.start_date|date:"d.m.Y H:i" }}
+                                    </div>
+                                    <div>
+                                        🏢 
+                                        <a href="{% url 'organization_detail' event.organization.id %}" 
+                                           class="text-decoration-none">
+                                            {{ event.organization.name }}
+                                        </a>
+                                    </div>
                                 </div>
 
-                                <a
-                                    href="{% url 'event_detail' event.id %}"
-                                    class="btn btn-outline-primary w-100"
-                                >
-                                    Подробнее
-                                </a>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="small">
+                                        👥 {{ event.approved_count }}/{{ event.required_volunteers }}
+                                    </div>
+                                    <a
+                                        href="{% url 'event_detail' event.id %}"
+                                        class="btn btn-outline-primary"
+                                    >
+                                        Подробнее
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
