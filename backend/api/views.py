@@ -183,16 +183,23 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             user_type = form.cleaned_data.get('user_type')
+            
             if user_type == 'volunteer':
                 VolunteerProfile.objects.create(user=user)
+                
             elif user_type == 'organization':
+                # Получаем данные из формы
+                organization_name = form.cleaned_data.get('organization_name')
+                organization_address = form.cleaned_data.get('organization_address')
+                
                 Organization.objects.create(
                     user=user,
-                    name=user.username,
+                    name=organization_name,
                     description='Организация зарегистрирована в Go2Help',
-                    contact_email=user.email if user.email else '',
-                    address='Адрес будет указан позже'
+                    contact_email=user.email,  # Используем email пользователя
+                    address=organization_address
                 )
+            
             login(request, user)
             return redirect('home')
     else:

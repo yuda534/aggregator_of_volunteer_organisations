@@ -13,6 +13,16 @@ class CustomUser(AbstractUser):
         ('organization', 'Организация'),
     )
 
+    # Переопределяем поле email, чтобы сделать его обязательным и уникальным
+    email = models.EmailField(
+        'email address',
+        unique=True,  # email должен быть уникальным
+        blank=False,  # не может быть пустым
+        error_messages={
+            'unique': "Пользователь с таким email уже существует.",
+        }
+    )
+    
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
     phone = models.CharField(max_length=20, blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)

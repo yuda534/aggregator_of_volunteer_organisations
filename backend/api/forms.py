@@ -14,20 +14,65 @@ from .models import (
 # РЕГИСТРАЦИЯ
 # =========================
 
+# =========================
+# РЕГИСТРАЦИЯ
+# =========================
+
 class RegisterForm(UserCreationForm):
+    # Обязательное поле email для всех
+    email = forms.EmailField(
+        required=True,
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
+    
+    # Дополнительные поля для организаций
+    organization_name = forms.CharField(
+        required=False,
+        label='Название организации',
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text='Заполняется только для организаций'
+    )
+    
+    organization_address = forms.CharField(
+        required=False,
+        label='Адрес организации',
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text='Заполняется только для организаций'
+    )
+
     class Meta(UserCreationForm.Meta):
         model = CustomUser
-        fields = ('username', 'password1', 'password2', 'user_type')
+        fields = ('username', 'email', 'password1', 'password2', 'user_type')
         labels = {
             'username': 'Логин',
             'user_type': 'Тип аккаунта',
         }
+        widgets = {
+            'user_type': forms.Select(attrs={'class': 'form-control'}),
+        }
 
-    def clean_user_type(self):
-        user_type = self.cleaned_data.get('user_type')
-        if user_type not in ['volunteer', 'organization']:
-            raise forms.ValidationError("Выберите корректный тип пользователя")
-        return user_type
+    def clean(self):
+        cleaned_data = super().clean()
+        user_type = cleaned_data.get('user_type')
+        organization_name = cleaned_data.get('organization_name')
+        organization_address = cleaned_data.get('organization_address')
+        
+        # Проверка для организаций
+        if user_type == 'organization':
+            if not organization_name:
+                self.add_error('organization_name', 'Это поле обязательно для организаций')
+            if not organization_address:
+                self.add_error('organization_address', 'Это поле обязательно для организаций')
+        
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        if commit:
+            user.save()
+        return user
 
 
 # =========================
