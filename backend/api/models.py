@@ -99,6 +99,20 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
+    def approved_count(self):
+        return self.volunteerapplication_set.filter(status='approved').count()
+
+    def is_open(self):
+        return (
+            self.status == 'active'
+            and self.approved_count() < self.required_volunteers
+        )
+
+    def auto_close_if_full(self):
+        if self.approved_count() >= self.required_volunteers:
+            self.status = 'completed'
+            self.save(update_fields=['status'])
+
 
 # ======================================================
 # APPLICATION

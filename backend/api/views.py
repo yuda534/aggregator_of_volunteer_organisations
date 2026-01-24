@@ -115,7 +115,6 @@ def event_detail_view(request, pk):
     })
 
 
-
 def organization_list_view(request):
     organizations = Organization.objects.all()
     return render(request, 'pages/organization_list.html', {'organizations': organizations})
@@ -137,7 +136,11 @@ def volunteer_detail_view(request, pk):
 
 
 def map_view(request):
-    events = Event.objects.filter(status='active', latitude__isnull=False, longitude__isnull=False)
+    events = Event.objects.filter(
+        status='active',
+        latitude__isnull=False,
+        longitude__isnull=False
+    )
     return render(request, 'pages/map.html', {'events': events})
 
 
@@ -201,20 +204,35 @@ def my_applications_view(request):
         return redirect('home')
 
     volunteer = get_object_or_404(VolunteerProfile, user=request.user)
-    applications = VolunteerApplication.objects.filter(volunteer=volunteer).select_related('event').order_by('-applied_at')
+    applications = (
+        VolunteerApplication.objects
+        .filter(volunteer=volunteer)
+        .select_related('event')
+        .order_by('-applied_at')
+    )
     return render(request, 'pages/my_applications.html', {'applications': applications})
 
 
 def organization_applications_view(request):
     if not request.user.is_authenticated:
         return redirect('login')
+
     if request.user.user_type != 'organization':
         messages.error(request, 'Доступ только для организаций')
         return redirect('home')
 
     organization = get_object_or_404(Organization, user=request.user)
-    applications = VolunteerApplication.objects.filter(event__organization=organization).select_related('volunteer__user', 'event').order_by('-applied_at')
-    return render(request, 'pages/organization_applications.html', {'applications': applications})
+
+    applications = (
+        VolunteerApplication.objects
+        .filter(event__organization=organization)
+        .select_related('volunteer__user', 'event')
+        .order_by('-applied_at')
+    )
+
+    return render(request, 'pages/organization_applications.html', {
+        'applications': applications
+    })
 
 
 def update_application_status_view(request, pk, status):
@@ -265,6 +283,7 @@ def mark_no_show_view(request, pk):
     volunteer = application.volunteer
     volunteer.rating = max(volunteer.rating - 1, 0)
     volunteer.save(update_fields=['rating'])
+
     messages.success(request, 'Неявка отмечена, рейтинг волонтёра снижен')
     return redirect('organization_applications')
 
@@ -318,7 +337,11 @@ def leave_organization_review_view(request, event_id, organization_id):
     organization = get_object_or_404(Organization, pk=organization_id)
     event = get_object_or_404(Event, pk=event_id, organization=organization)
 
-    if OrganizationReview.objects.filter(volunteer=volunteer, event=event, organization=organization).exists():
+    if OrganizationReview.objects.filter(
+        volunteer=volunteer,
+        event=event,
+        organization=organization
+    ).exists():
         messages.warning(request, 'Вы уже оставили отзыв об этой организации')
         return redirect('my_applications')
 

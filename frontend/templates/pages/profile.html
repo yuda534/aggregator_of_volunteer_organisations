@@ -10,13 +10,20 @@
             <div>
                 <h1 class="mb-1">{{ user.get_full_name|default:user.username }}</h1>
                 <p class="text-muted mb-0">
-                    {% if user.role == 'volunteer' %}
+                    {% if user.user_type == 'volunteer' %}
                         Волонтёр
-                    {% elif user.role == 'organization' %}
+                    {% elif user.user_type == 'organization' %}
                         Представитель организации
                     {% endif %}
                 </p>
             </div>
+
+            {% if user.user_type == 'organization' %}
+                <a href="{% url 'organization_applications' %}"
+                   class="btn btn-primary">
+                    Заявки на мероприятия
+                </a>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -49,12 +56,12 @@
             </div>
         </section>
 
+        {% if user.user_type == 'volunteer' %}
         <!-- RATING -->
-        {% if user.role == 'volunteer' %}
         <section>
             <div class="card p-4 text-center">
                 <h5 class="mb-3">Рейтинг</h5>
-                <h2 class="mb-0">{{ user.rating|default:"—" }}</h2>
+                <h2 class="mb-0">{{ user.volunteerprofile.rating|default:"—" }}</h2>
                 <p class="text-muted small mt-1">на основе отзывов</p>
             </div>
         </section>
@@ -65,7 +72,7 @@
     <!-- RIGHT COLUMN -->
     <div class="col-lg-8">
 
-        {% if user.role == 'volunteer' %}
+        {% if user.user_type == 'volunteer' %}
 
             <!-- VOLUNTEER APPLICATIONS -->
             <section class="mb-4">
@@ -98,10 +105,8 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <a
-                                                href="{% url 'event_detail' app.event.id %}"
-                                                class="btn btn-sm btn-outline-primary"
-                                            >
+                                            <a href="{% url 'event_detail' app.event.id %}"
+                                               class="btn btn-sm btn-outline-primary">
                                                 Открыть
                                             </a>
                                         </td>
@@ -118,7 +123,7 @@
                 </div>
             </section>
 
-        {% elif user.role == 'organization' %}
+        {% elif user.user_type == 'organization' %}
 
             <!-- ORGANIZATION EVENTS -->
             <section class="mb-4">
@@ -136,7 +141,6 @@
                                 <thead>
                                     <tr>
                                         <th>Название</th>
-                                        <th>Город</th>
                                         <th>Статус</th>
                                         <th></th>
                                     </tr>
@@ -145,19 +149,16 @@
                                     {% for event in events %}
                                     <tr>
                                         <td>{{ event.title }}</td>
-                                        <td>{{ event.city }}</td>
                                         <td>
-                                            {% if event.is_open %}
-                                                <span class="badge bg-success">Открыто</span>
+                                            {% if event.status == 'active' %}
+                                                <span class="badge bg-success">Активно</span>
                                             {% else %}
-                                                <span class="badge bg-secondary">Закрыто</span>
+                                                <span class="badge bg-secondary">Не активно</span>
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <a
-                                                href="{% url 'event_detail' event.id %}"
-                                                class="btn btn-sm btn-outline-primary"
-                                            >
+                                            <a href="{% url 'event_detail' event.id %}"
+                                               class="btn btn-sm btn-outline-primary">
                                                 Открыть
                                             </a>
                                         </td>

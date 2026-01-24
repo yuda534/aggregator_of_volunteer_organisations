@@ -6,86 +6,81 @@
 <div class="container py-4">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Заявки организации</h2>
-        <a href="{% url 'organization_detail' organization.id %}"
-           class="btn btn-outline-secondary">
-            К организации
+        <h2 class="mb-0">Заявки на мероприятия</h2>
+        <a href="{% url 'profile' user.id %}" class="btn btn-outline-secondary">
+            В профиль
         </a>
     </div>
 
-    {% if events %}
-        {% for event in events %}
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
+    {% if applications %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Мероприятие</th>
+                        <th>Волонтёр</th>
+                        <th>Дата заявки</th>
+                        <th>Статус</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'event_detail' application.event.id %}">
+                                    {{ application.event.title }}
+                                </a>
+                            </td>
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">
-                            <a href="{% url 'event_detail' event.id %}">
-                                {{ event.title }}
-                            </a>
-                        </h5>
-                        <span class="text-muted">
-                            {{ event.date|date:"d.m.Y" }}
-                        </span>
-                    </div>
+                            <td>
+                                <a href="{% url 'volunteer_detail' application.volunteer.id %}">
+                                    {{ application.volunteer.user.username }}
+                                </a>
+                            </td>
 
-                    {% if event.applications.all %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Волонтёр</th>
-                                        <th>Дата заявки</th>
-                                        <th>Статус</th>
-                                        <th class="text-end">Действия</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for application in event.applications.all %}
-                                        <tr>
-                                            <td>
-                                                <a href="{% url 'volunteer_detail' application.volunteer.id %}">
-                                                    {{ application.volunteer.user.username }}
-                                                </a>
-                                            </td>
+                            <td>
+                                {{ application.applied_at|date:"d.m.Y H:i" }}
+                            </td>
 
-                                            <td>
-                                                {{ application.created_at|date:"d.m.Y H:i" }}
-                                            </td>
+                            <td>
+                                {% if application.status == "pending" %}
+                                    <span class="badge bg-warning text-dark">
+                                        Ожидает
+                                    </span>
+                                {% elif application.status == "approved" %}
+                                    <span class="badge bg-success">
+                                        Одобрена
+                                    </span>
+                                {% elif application.status == "rejected" %}
+                                    <span class="badge bg-danger">
+                                        Отклонена
+                                    </span>
+                                {% endif %}
+                            </td>
 
-                                            <td>
-                                                {% if application.status == "pending" %}
-                                                    <span class="badge bg-warning text-dark">Ожидает</span>
-                                                {% elif application.status == "approved" %}
-                                                    <span class="badge bg-success">Одобрена</span>
-                                                {% elif application.status == "rejected" %}
-                                                    <span class="badge bg-danger">Отклонена</span>
-                                                {% endif %}
-                                            </td>
-
-                                            <td class="text-end">
-                                                <a href="{% url 'application_detail' application.id %}"
-                                                   class="btn btn-sm btn-outline-primary">
-                                                    Подробнее
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted mb-0">
-                            Заявок на это мероприятие пока нет.
-                        </p>
-                    {% endif %}
-
-                </div>
-            </div>
-        {% endfor %}
+                            <td class="text-end">
+                                {% if application.status == "pending" %}
+                                    <a href="{% url 'update_application_status' application.id 'approved' %}"
+                                       class="btn btn-sm btn-success">
+                                        Одобрить
+                                    </a>
+                                    <a href="{% url 'update_application_status' application.id 'rejected' %}"
+                                       class="btn btn-sm btn-danger">
+                                        Отклонить
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
         <div class="alert alert-info">
-            У организации пока нет мероприятий.
+            Заявок на мероприятия пока нет.
         </div>
     {% endif %}
 
