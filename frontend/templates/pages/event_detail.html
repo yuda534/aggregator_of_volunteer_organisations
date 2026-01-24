@@ -128,24 +128,26 @@
 
 {% if event.latitude and event.longitude %}
 <script>
-    function initMap() {
-        const location = { lat: {{ event.latitude }}, lng: {{ event.longitude }} };
+    ymaps.ready(init);
 
-        const map = new google.maps.Map(document.getElementById("map"), {
-            zoom: 14,
-            center: location,
+    function init() {
+        const map = new ymaps.Map("map", {
+            center: [{{ event.latitude }}, {{ event.longitude }}],
+            zoom: 14
         });
 
-        new google.maps.Marker({
-            position: location,
-            map: map,
-        });
+        const placemark = new ymaps.Placemark(
+            [{{ event.latitude }}, {{ event.longitude }}],
+            {
+                balloonContent: '{{ event.title }}'
+            },
+            {
+                preset: 'islands#redIcon'
+            }
+        );
+
+        map.geoObjects.add(placemark);
     }
-</script>
-
-<script
-    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
-    async defer>
 </script>
 {% endif %}
 

@@ -62,11 +62,11 @@
                                 </a>
 
                                 {% if application.status == "pending" %}
-                                    <a href="{% url 'approve_application' application.id %}"
+                                    <a href="{% url 'update_application_status' application.id 'approved' %}"
                                        class="btn btn-sm btn-success ms-1">
                                         Одобрить
                                     </a>
-                                    <a href="{% url 'reject_application' application.id %}"
+                                    <a href="{% url 'update_application_status' application.id 'rejected' %}"
                                        class="btn btn-sm btn-danger ms-1">
                                         Отклонить
                                     </a>

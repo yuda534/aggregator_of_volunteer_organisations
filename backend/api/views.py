@@ -181,25 +181,8 @@ def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
+            # Форма сама создаст пользователя и профиль
             user = form.save()
-            user_type = form.cleaned_data.get('user_type')
-            
-            if user_type == 'volunteer':
-                VolunteerProfile.objects.create(user=user)
-                
-            elif user_type == 'organization':
-                # Получаем данные из формы
-                organization_name = form.cleaned_data.get('organization_name')
-                organization_address = form.cleaned_data.get('organization_address')
-                
-                Organization.objects.create(
-                    user=user,
-                    name=organization_name,
-                    description='Организация зарегистрирована в Go2Help',
-                    contact_email=user.email,  # Используем email пользователя
-                    address=organization_address
-                )
-            
             login(request, user)
             return redirect('home')
     else:
@@ -379,8 +362,6 @@ def leave_organization_review_view(request, event_id, organization_id):
         'event': event
     })
 
-
-# В backend/api/views.py добавь:
 
 def edit_profile_view(request):
     if not request.user.is_authenticated:

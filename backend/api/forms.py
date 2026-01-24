@@ -14,10 +14,6 @@ from .models import (
 # РЕГИСТРАЦИЯ
 # =========================
 
-# =========================
-# РЕГИСТРАЦИЯ
-# =========================
-
 class RegisterForm(UserCreationForm):
     # Обязательное поле email для всех
     email = forms.EmailField(
@@ -70,8 +66,22 @@ class RegisterForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        
         if commit:
             user.save()
+            # Если это организация - создаём профиль организации
+            if user.user_type == 'organization':
+                Organization.objects.create(
+                    user=user,
+                    name=self.cleaned_data.get('organization_name', ''),
+                    description='Организация зарегистрирована в Go2Help',
+                    contact_email=user.email,
+                    address=self.cleaned_data.get('organization_address', '')
+                )
+            # Если это волонтёр - создаём профиль волонтёра
+            elif user.user_type == 'volunteer':
+                VolunteerProfile.objects.create(user=user)
+        
         return user
 
 
