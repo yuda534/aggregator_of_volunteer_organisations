@@ -8,11 +8,11 @@
     <div class="card p-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <h1 class="mb-1">{{ user.get_full_name|default:user.username }}</h1>
+                <h1 class="mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h1>
                 <p class="text-muted mb-0">
-                    {% if user.user_type == 'volunteer' %}
+                    {% if user_obj.user_type == 'volunteer' %}
                         Волонтёр
-                    {% elif user.user_type == 'organization' %}
+                    {% elif user_obj.user_type == 'organization' %}
                         Представитель организации
                     {% endif %}
                 </p>
@@ -23,7 +23,7 @@
                     Редактировать профиль
                 </a>
                 
-                {% if user.user_type == 'organization' %}
+                {% if user_obj.user_type == 'organization' %}
                     <a href="{% url 'organization_applications' %}"
                        class="btn btn-primary">
                         Заявки на мероприятия
@@ -46,150 +46,323 @@
 
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item px-0">
-                        Email: <strong>{{ user.email }}</strong>
+                        Email: <strong>{{ user_obj.email }}</strong>
                     </li>
-                    {% if user.city %}
+                    {% if user_obj.city %}
                     <li class="list-group-item px-0">
-                        Город: <strong>{{ user.city }}</strong>
+                        Город: <strong>{{ user_obj.city }}</strong>
                     </li>
                     {% endif %}
-                    {% if user.phone %}
+                    {% if user_obj.phone %}
                     <li class="list-group-item px-0">
-                        Телефон: <strong>{{ user.phone }}</strong>
+                        Телефон: <strong>{{ user_obj.phone }}</strong>
                     </li>
                     {% endif %}
                 </ul>
             </div>
         </section>
 
-        {% if user.user_type == 'volunteer' %}
         <!-- RATING -->
         <section>
             <div class="card p-4 text-center">
                 <h5 class="mb-3">Рейтинг</h5>
-                <h2 class="mb-0">{{ user.volunteerprofile.rating|default:"—" }}</h2>
-                <p class="text-muted small mt-1">на основе отзывов</p>
+                <h2 class="mb-0">{{ profile.rating|default:"0.0" }}</h2>
+                <p class="text-muted small mt-1">
+                    {% if user_obj.user_type == 'volunteer' %}
+                        на основе отзывов организаций
+                    {% elif user_obj.user_type == 'organization' %}
+                        на основе отзывов волонтёров
+                    {% endif %}
+                </p>
             </div>
         </section>
-        {% endif %}
 
     </div>
 
     <!-- RIGHT COLUMN -->
     <div class="col-lg-8">
 
-        {% if user.user_type == 'volunteer' %}
+        {% if user_obj.user_type == 'volunteer' %}
 
-            <!-- VOLUNTEER APPLICATIONS -->
+            <!-- CURRENT APPLICATIONS -->
+            {% if current_applications %}
             <section class="mb-4">
                 <div class="card p-4">
-                    <h4 class="mb-3">Мои заявки</h4>
-
-                    {% if applications %}
-                        <div class="table-responsive">
-                            <table class="table align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Мероприятие</th>
-                                        <th>Организация</th>
-                                        <th>Статус</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for app in applications %}
-                                    <tr>
-                                        <td>{{ app.event.title }}</td>
-                                        <td>{{ app.event.organization.name }}</td>
-                                        <td>
-                                            {% if app.status == 'approved' %}
-                                                <span class="badge bg-success">Одобрена</span>
-                                            {% elif app.status == 'rejected' %}
-                                                <span class="badge bg-danger">Отклонена</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">На рассмотрении</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-end">
-                                            <a href="{% url 'event_detail' app.event.id %}"
-                                               class="btn btn-sm btn-outline-primary">
-                                                Открыть
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted mb-0">
-                            Вы ещё не подавали заявки на мероприятия
-                        </p>
-                    {% endif %}
+                    <h4 class="mb-3">Текущие мероприятия</h4>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Мероприятие</th>
+                                    <th>Организация</th>
+                                    <th>Дата</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in current_applications %}
+                                <tr>
+                                    <td>{{ app.event.title }}</td>
+                                    <td>{{ app.event.organization.name }}</td>
+                                    <td>{{ app.event.start_date|date:"d.m.Y" }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'event_detail' app.event.id %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Открыть
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
+            {% endif %}
 
-        {% elif user.user_type == 'organization' %}
+            <!-- HISTORY APPLICATIONS -->
+            {% if history_applications %}
+            <section class="mb-4">
+                <div class="card p-4">
+                    <h4 class="mb-3">История мероприятий</h4>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Мероприятие</th>
+                                    <th>Организация</th>
+                                    <th>Дата</th>
+                                    <th>Отзыв</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for app in history_applications %}
+                                <tr>
+                                    <td>{{ app.event.title }}</td>
+                                    <td>{{ app.event.organization.name }}</td>
+                                    <td>{{ app.event.start_date|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if app.can_review %}
+                                        <a href="{% url 'leave_organization_review' app.event.id app.event.organization.id %}"
+                                           class="btn btn-sm btn-outline-success">
+                                            Оставить отзыв
+                                        </a>
+                                        {% else %}
+                                        <span class="badge bg-success">Отзыв оставлен</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
 
-            <!-- ORGANIZATION EVENTS -->
+            <!-- VOLUNTEER REVIEWS -->
+            {% if profile.volunteerreview_set.all %}
+            <section class="mb-4">
+                <div class="card p-4">
+                    <h4 class="mb-3">Полученные отзывы</h4>
+                    <div class="row g-3">
+                        {% for review in profile.volunteerreview_set.all %}
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ review.organization.name }}</h6>
+                                        <span class="badge bg-primary">
+                                            {% with ''|center:review.rating as range %}
+                                            {% for _ in range %}★{% endfor %}
+                                            {% endwith %}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        Мероприятие: <strong>{{ review.event.title }}</strong><br>
+                                        {{ review.created_at|date:"d.m.Y" }}
+                                    </p>
+                                    {% if review.positive_comment %}
+                                    <p class="mb-2"><strong>Что понравилось:</strong> {{ review.positive_comment }}</p>
+                                    {% endif %}
+                                    {% if review.negative_comment %}
+                                    <p class="mb-0"><strong>Что можно улучшить:</strong> {{ review.negative_comment }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+        {% elif user_obj.user_type == 'organization' %}
+
+            <!-- CURRENT EVENTS -->
+            {% if current_events %}
             <section class="mb-4">
                 <div class="card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="mb-0">Мои мероприятия</h4>
+                        <h4 class="mb-0">Текущие мероприятия</h4>
                         <div class="d-flex gap-2">
                             <a href="{% url 'create_event' %}" class="btn btn-sm btn-primary">
                                 + Создать
                             </a>
                         </div>
                     </div>
-
-                    {% if events %}
-                        <div class="table-responsive">
-                            <table class="table align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Название</th>
-                                        <th>Статус</th>
-                                        <th>Волонтёры</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for event in events %}
-                                    <tr>
-                                        <td>{{ event.title }}</td>
-                                        <td>
-                                            {% if event.status == 'active' %}
-                                                <span class="badge bg-success">Активно</span>
-                                            {% elif event.status == 'draft' %}
-                                                <span class="badge bg-secondary">Черновик</span>
-                                            {% elif event.status == 'completed' %}
-                                                <span class="badge bg-info">Завершено</span>
-                                            {% elif event.status == 'cancelled' %}
-                                                <span class="badge bg-danger">Отменено</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {{ event.approved_count }}/{{ event.required_volunteers }}
-                                        </td>
-                                        <td class="text-end">
-                                            <a href="{% url 'event_detail' event.id %}"
-                                               class="btn btn-sm btn-outline-primary">
-                                                Открыть
-                                            </a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p class="text-muted mb-0">
-                            Вы ещё не создали ни одного мероприятия
-                        </p>
-                    {% endif %}
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Статус</th>
+                                    <th>Волонтёры</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in current_events %}
+                                <tr>
+                                    <td>{{ event.title }}</td>
+                                    <td>
+                                        {% if event.status == 'active' %}
+                                            <span class="badge bg-success">Активно</span>
+                                        {% elif event.status == 'draft' %}
+                                            <span class="badge bg-secondary">Черновик</span>
+                                        {% elif event.status == 'completed' %}
+                                            <span class="badge bg-info">Завершено</span>
+                                        {% elif event.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Отменено</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ event.approved_count }}/{{ event.required_volunteers }}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{% url 'event_detail' event.id %}"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Открыть
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
+            {% endif %}
+
+            <!-- HISTORY EVENTS -->
+            {% if history_events %}
+            <section class="mb-4">
+                <div class="card p-4">
+                    <h4 class="mb-3">История мероприятий</h4>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Мероприятие</th>
+                                    <th>Дата</th>
+                                    <th>Участвовало</th>
+                                    <th>Отзывы</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in history_events %}
+                                <tr>
+                                    <td>{{ event.title }}</td>
+                                    <td>{{ event.start_date|date:"d.m.Y" }}</td>
+                                    <td>{{ event.approved_count }} волонтёров</td>
+                                    <td>
+                                        <a href="{% url 'organization_applications' %}"
+                                           class="btn btn-sm btn-outline-success">
+                                            Управление отзывами
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- ВОЛОНТЁРЫ ДЛЯ ОТЗЫВОВ -->
+            {% if history_events %}
+            <section class="mb-4">
+                <div class="card p-4">
+                    <h4 class="mb-3">Волонтёры для отзывов</h4>
+                    {% for event in history_events %}
+                        {% if event.volunteers_with_reviews %}
+                            <div class="mb-4">
+                                <h6>{{ event.title }}</h6>
+                                <div class="row g-2">
+                                    {% for volunteer_data in event.volunteers_with_reviews %}
+                                        <div class="col-md-6">
+                                            <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                                <div>
+                                                    {{ volunteer_data.volunteer.user.username }}
+                                                </div>
+                                                <div>
+                                                    {% if not volunteer_data.has_review %}
+                                                        <a href="{% url 'leave_volunteer_review' event.id volunteer_data.volunteer.id %}"
+                                                           class="btn btn-sm btn-outline-success">
+                                                            Оставить отзыв
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="badge bg-success">Отзыв оставлен</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- ORGANIZATION REVIEWS -->
+            {% if profile.organizationreview_set.all %}
+            <section class="mb-4">
+                <div class="card p-4">
+                    <h4 class="mb-3">Отзывы об организации</h4>
+                    <div class="row g-3">
+                        {% for review in profile.organizationreview_set.all %}
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ review.volunteer.user.username }}</h6>
+                                        <span class="badge bg-primary">
+                                            {% with ''|center:review.rating as range %}
+                                            {% for _ in range %}★{% endfor %}
+                                            {% endwith %}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted small mb-2">
+                                        Мероприятие: <strong>{{ review.event.title }}</strong><br>
+                                        {{ review.created_at|date:"d.m.Y" }}
+                                    </p>
+                                    {% if review.positive_comment %}
+                                    <p class="mb-2"><strong>Что понравилось:</strong> {{ review.positive_comment }}</p>
+                                    {% endif %}
+                                    {% if review.negative_comment %}
+                                    <p class="mb-0"><strong>Что можно улучшить:</strong> {{ review.negative_comment }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+            {% endif %}
 
         {% endif %}
 

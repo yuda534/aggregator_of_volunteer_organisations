@@ -80,11 +80,16 @@
                                 <h5 class="card-title mb-0">
                                     {{ event.title }}
                                 </h5>
-                                {% if event.is_open %}
-                                    <span class="badge bg-success">Открыто</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Закрыто</span>
-                                {% endif %}
+                                <span class="badge 
+                                    {% if event.is_open_for_applications %}bg-success
+                                    {% elif event.approved_count >= event.required_volunteers %}bg-warning
+                                    {% elif event.is_completed %}bg-secondary
+                                    {% else %}bg-info{% endif %}">
+                                    {% if event.is_open_for_applications %}Набор открыт
+                                    {% elif event.approved_count >= event.required_volunteers %}Набор закрыт
+                                    {% elif event.is_completed %}Завершено
+                                    {% else %}{{ event.get_status_display_with_details }}{% endif %}
+                                </span>
                             </div>
 
                             <p class="card-text mt-2">

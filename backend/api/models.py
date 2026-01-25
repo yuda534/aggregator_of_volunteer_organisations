@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg
+from django.utils import timezone
 
 
 # ======================================================
@@ -112,16 +113,45 @@ class Event(models.Model):
     def approved_count(self):
         return self.volunteerapplication_set.filter(status='approved').count()
 
-    def is_open(self):
+    def is_open_for_applications(self):
+        """Проверяет, открыт ли набор на мероприятие"""
+        now = timezone.now()
         return (
             self.status == 'active'
             and self.approved_count() < self.required_volunteers
+            and now < self.end_date  # Добавили проверку времени
         )
 
-    def auto_close_if_full(self):
-        if self.approved_count() >= self.required_volunteers:
+    def is_completed(self):
+        """Проверяет, завершено ли мероприятие по времени"""
+        return timezone.now() > self.end_date
+
+    def auto_update_status(self):
+        """Автоматически обновляет статус мероприятия"""
+        now = timezone.now()
+        
+        if self.is_completed():
             self.status = 'completed'
             self.save(update_fields=['status'])
+        elif self.approved_count() >= self.required_volunteers:
+            self.status = 'active'  # остаётся активным, но набор закрыт
+            self.save(update_fields=['status'])
+    
+    def get_status_display_with_details(self):
+        """Возвращает детальное отображение статуса"""
+        now = timezone.now()
+        
+        if now > self.end_date:
+            return 'Завершено'
+        elif self.approved_count() >= self.required_volunteers:
+            return 'Набор закрыт'
+        elif self.status == 'active':
+            return 'Набор открыт'
+        elif self.status == 'draft':
+            return 'Черновик'
+        elif self.status == 'cancelled':
+            return 'Отменено'
+        return 'Неизвестно'
 
 
 # ======================================================
@@ -158,29 +188,41 @@ class VolunteerReview(models.Model):
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    rating = models.PositiveSmallIntegerField()
-    comment = models.TextField(blank=True)
+    rating = models.PositiveSmallIntegerField()  # 1-5 звезд
+    positive_comment = models.TextField(blank=True, verbose_name="Что понравилось")
+    negative_comment = models.TextField(blank=True, verbose_name="Что можно улучшить")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('volunteer', 'event')
+        verbose_name = "Отзыв о волонтёре"
+        verbose_name_plural = "Отзывы о волонтёрах"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.volunteer.recalculate_rating()
+
+    def __str__(self):
+        return f"Отзыв о {self.volunteer} от {self.organization}"
 
 
 class OrganizationReview(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    rating = models.PositiveSmallIntegerField()
-    comment = models.TextField(blank=True)
+    rating = models.PositiveSmallIntegerField()  # 1-5 звезд
+    positive_comment = models.TextField(blank=True, verbose_name="Что понравилось")
+    negative_comment = models.TextField(blank=True, verbose_name="Что можно улучшить")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('organization', 'event', 'volunteer')
+        verbose_name = "Отзыв об организации"
+        verbose_name_plural = "Отзывы об организациях"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.organization.recalculate_rating()
+
+    def __str__(self):
+        return f"Отзыв об {self.organization} от {self.volunteer}"

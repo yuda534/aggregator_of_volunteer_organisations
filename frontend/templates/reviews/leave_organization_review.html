@@ -1,28 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Оставить отзыв об организации — Go2Help{% endblock %}
+{% block title %}Отзыв об организации — Go2Help{% endblock %}
 
 {% block content %}
 
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-7">
-
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">Отзыв об организации</h2>
-                <a href="{% url 'organization_detail' organization.id %}"
-                   class="btn btn-outline-secondary">
-                    Назад к организации
-                </a>
-            </div>
-
+        <div class="col-lg-8">
             <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h2 class="mb-0">Отзыв об организации</h2>
+                    <p class="text-muted mb-0">Мероприятие: {{ event.title }}</p>
+                </div>
+                
                 <div class="card-body">
-
                     <div class="mb-4">
-                        <h5 class="mb-1">{{ organization.name }}</h5>
-                        <p class="text-muted mb-0">
-                            Поделитесь своим опытом взаимодействия с организацией
-                        </p>
+                        <h5>Организация: {{ organization.name }}</h5>
+                        <p class="text-muted">Пожалуйста, оцените организацию и проведение мероприятия.</p>
                     </div>
 
                     {% if form.non_field_errors %}
@@ -33,40 +26,80 @@
 
                     <form method="post" novalidate>
                         {% csrf_token %}
-
-                        <!-- RATING -->
-                        <div class="mb-3">
-                            <label class="form-label">Оценка</label>
-                            {{ form.rating }}
-                            <div class="form-text">
-                                1 — очень плохо, 5 — отлично
-                            </div>
-                            {% for error in form.rating.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
-                        </div>
-
-                        <!-- COMMENT -->
+                        
+                        <!-- Рейтинг -->
                         <div class="mb-4">
-                            <label class="form-label">Комментарий</label>
-                            {{ form.comment }}
-                            {% for error in form.comment.errors %}
-                                <div class="text-danger small">{{ error }}</div>
-                            {% endfor %}
+                            <label class="form-label fw-bold">Оценка</label>
+                            <div class="rating-stars">
+                                {% for choice in form.rating.field.choices %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" 
+                                           name="{{ form.rating.name }}" 
+                                           id="rating{{ choice.0 }}" 
+                                           value="{{ choice.0 }}"
+                                           {% if form.rating.value == choice.0 %}checked{% endif %}>
+                                    <label class="form-check-label" for="rating{{ choice.0 }}">
+                                        {{ choice.1 }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.rating.errors %}
+                                <div class="text-danger small">{{ form.rating.errors }}</div>
+                            {% endif %}
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <!-- Что понравилось -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Что понравилось в организации мероприятия?</label>
+                            {{ form.positive_comment }}
+                            <div class="form-text">Опишите положительные моменты и сильные стороны организации</div>
+                            {% if form.positive_comment.errors %}
+                                <div class="text-danger small">{{ form.positive_comment.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Что можно улучшить -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Что можно улучшить?</label>
+                            {{ form.negative_comment }}
+                            <div class="form-text">Конструктивные предложения по улучшению</div>
+                            {% if form.negative_comment.errors %}
+                                <div class="text-danger small">{{ form.negative_comment.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'my_applications' %}" class="btn btn-secondary">
+                                Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary">
                                 Отправить отзыв
                             </button>
                         </div>
                     </form>
-
                 </div>
             </div>
-
         </div>
     </div>
 </div>
+
+<style>
+.rating-stars {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+}
+
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-check-label {
+    padding-left: 0.5rem;
+    cursor: pointer;
+}
+</style>
 
 {% endblock %}

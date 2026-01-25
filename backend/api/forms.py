@@ -163,15 +163,75 @@ class VolunteerApplicationForm(forms.ModelForm):
 
 
 class VolunteerReviewForm(forms.ModelForm):
+    RATING_CHOICES = [
+        (5, '⭐⭐⭐⭐⭐ - Отлично'),
+        (4, '⭐⭐⭐⭐ - Хорошо'),
+        (3, '⭐⭐⭐ - Удовлетворительно'),
+        (2, '⭐⭐ - Плохо'),
+        (1, '⭐ - Очень плохо'),
+    ]
+    
+    rating = forms.ChoiceField(
+        choices=RATING_CHOICES,
+        widget=forms.RadioSelect,
+        label='Оценка'
+    )
+    
     class Meta:
         model = VolunteerReview
-        fields = ('rating', 'comment')
+        fields = ('rating', 'positive_comment', 'negative_comment')
+        widgets = {
+            'positive_comment': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Что понравилось в работе волонтёра?'
+            }),
+            'negative_comment': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Что можно было бы улучшить?'
+            }),
+        }
+        labels = {
+            'positive_comment': 'Что понравилось',
+            'negative_comment': 'Что можно улучшить',
+        }
 
 
 class OrganizationReviewForm(forms.ModelForm):
+    RATING_CHOICES = [
+        (5, '⭐⭐⭐⭐⭐ - Отлично'),
+        (4, '⭐⭐⭐⭐ - Хорошо'),
+        (3, '⭐⭐⭐ - Удовлетворительно'),
+        (2, '⭐⭐ - Плохо'),
+        (1, '⭐ - Очень плохо'),
+    ]
+    
+    rating = forms.ChoiceField(
+        choices=RATING_CHOICES,
+        widget=forms.RadioSelect,
+        label='Оценка'
+    )
+    
     class Meta:
         model = OrganizationReview
-        fields = ('rating', 'comment')
+        fields = ('rating', 'positive_comment', 'negative_comment')
+        widgets = {
+            'positive_comment': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Что понравилось в организации мероприятия?'
+            }),
+            'negative_comment': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Что можно было бы улучшить?'
+            }),
+        }
+        labels = {
+            'positive_comment': 'Что понравилось',
+            'negative_comment': 'Что можно улучшить',
+        }
 
 
 # =========================
