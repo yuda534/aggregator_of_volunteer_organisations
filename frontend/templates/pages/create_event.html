@@ -49,11 +49,14 @@
         </div>
 
         <!-- Карта -->
-        <div class="mb-3">
+        <div class="mb-4">
             <label class="form-label"><strong>Местоположение на карте</strong></label>
-            <div id="map"
-                 style="height: 300px;"
-                 class="border rounded">
+            <div class="alert alert-info mb-2">
+                <small>💡 Нажмите на карту, чтобы установить маркер. Адрес автоматически заполнится в поле выше.</small>
+            </div>
+            <div id="map" style="height: 300px;" class="border rounded mb-2"></div>
+            <div class="text-muted small" id="coordinates-info">
+                Координаты: не выбраны
             </div>
         </div>
 
@@ -73,17 +76,35 @@
 <script>
     ymaps.ready(init);
 
+    let placemark = null;
+
     function init() {
         const map = new ymaps.Map("map", {
             center: [55.751574, 37.573856], // Москва
             zoom: 10
         });
 
-        let placemark = null;
+        // Если есть существующие координаты в форме, установить маркер
+        const latInput = document.getElementById('id_latitude');
+        const lonInput = document.getElementById('id_longitude');
+        const locationInput = document.getElementById('id_location');
+        const coordinatesInfo = document.getElementById('coordinates-info');
+        
+        if (latInput.value && lonInput.value) {
+            const coords = [parseFloat(latInput.value), parseFloat(lonInput.value)];
+            setPlacemark(coords);
+            map.setCenter(coords, 15);
+            reverseGeocode(coords);
+        }
 
         map.events.add('click', function (e) {
             const coords = e.get('coords');
+            setPlacemark(coords);
+            setCoordinates(coords);
+            reverseGeocode(coords);
+        });
 
+        function setPlacemark(coords) {
             if (placemark) {
                 placemark.geometry.setCoordinates(coords);
             } else {
@@ -97,15 +118,27 @@
                 placemark.events.add('dragend', function () {
                     const newCoords = placemark.geometry.getCoordinates();
                     setCoordinates(newCoords);
+                    reverseGeocode(newCoords);
                 });
             }
-
-            setCoordinates(coords);
-        });
+        }
 
         function setCoordinates(coords) {
-            document.getElementById('id_latitude').value = coords[0];
-            document.getElementById('id_longitude').value = coords[1];
+            document.getElementById('id_latitude').value = coords[0].toFixed(6);
+            document.getElementById('id_longitude').value = coords[1].toFixed(6);
+            coordinatesInfo.textContent = `Координаты: ${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}`;
+        }
+
+        function reverseGeocode(coords) {
+            ymaps.geocode(coords).then(function (res) {
+                var firstGeoObject = res.geoObjects.get(0);
+                if (firstGeoObject) {
+                    const address = firstGeoObject.getAddressLine();
+                    if (locationInput) {
+                        locationInput.value = address;
+                    }
+                }
+            });
         }
     }
 </script>

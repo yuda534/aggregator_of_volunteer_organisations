@@ -163,22 +163,52 @@
     function init() {
         const map = new ymaps.Map("map", {
             center: [{{ event.latitude }}, {{ event.longitude }}],
-            zoom: 14
+            zoom: 14,
+            controls: ['zoomControl', 'fullscreenControl']
         });
 
         const placemark = new ymaps.Placemark(
             [{{ event.latitude }}, {{ event.longitude }}],
             {
-                balloonContent: '{{ event.title }}'
+                balloonContentHeader: '<strong>{{ event.title }}</strong>',
+                balloonContentBody: `
+                    <div class="map-balloon">
+                        <p><strong>Организация:</strong> {{ event.organization.name }}</p>
+                        <p><strong>Дата начала:</strong> {{ event.start_date|date:"d.m.Y H:i" }}</p>
+                        <p><strong>Требуется волонтёров:</strong> {{ event.required_volunteers }}</p>
+                        <p><strong>Одобрено:</strong> {{ event.approved_count }}</p>
+                        <p><strong>Свободных мест:</strong> {{ available_spots }}</p>
+                        <div class="mt-2">
+                            <a href="{% url 'event_detail' event.id %}" class="btn btn-sm btn-primary">
+                                Подробнее
+                            </a>
+                        </div>
+                    </div>
+                `,
+                hintContent: '{{ event.title }}'
             },
             {
-                preset: 'islands#redIcon'
+                preset: 'islands#redIcon',
+                balloonCloseButton: true
             }
         );
 
         map.geoObjects.add(placemark);
+        
+        // Открываем балун автоматически
+        placemark.balloon.open();
     }
 </script>
+
+<style>
+.map-balloon {
+    max-width: 250px;
+}
+.map-balloon p {
+    margin-bottom: 3px;
+    font-size: 13px;
+}
+</style>
 {% endif %}
 
 {% endblock %}

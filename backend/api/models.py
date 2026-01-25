@@ -110,7 +110,9 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
+    @property
     def approved_count(self):
+        """Количество одобренных заявок (property для использования в шаблонах)"""
         return self.volunteerapplication_set.filter(status='approved').count()
 
     def is_open_for_applications(self):
@@ -118,7 +120,7 @@ class Event(models.Model):
         now = timezone.now()
         return (
             self.status == 'active'
-            and self.approved_count() < self.required_volunteers
+            and self.approved_count < self.required_volunteers
             and now < self.end_date  # Добавили проверку времени
         )
 
@@ -133,7 +135,7 @@ class Event(models.Model):
         if self.is_completed():
             self.status = 'completed'
             self.save(update_fields=['status'])
-        elif self.approved_count() >= self.required_volunteers:
+        elif self.approved_count >= self.required_volunteers:
             self.status = 'active'  # остаётся активным, но набор закрыт
             self.save(update_fields=['status'])
     
@@ -143,7 +145,7 @@ class Event(models.Model):
         
         if now > self.end_date:
             return 'Завершено'
-        elif self.approved_count() >= self.required_volunteers:
+        elif self.approved_count >= self.required_volunteers:
             return 'Набор закрыт'
         elif self.status == 'active':
             return 'Набор открыт'

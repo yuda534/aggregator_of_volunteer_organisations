@@ -105,6 +105,46 @@ h1, h2, h3, h4, h5 {
     background-color: #e9ecef;
 }
 
+/* Стили для карт и балунов */
+.map-balloon {
+    font-family: 'Inter', sans-serif;
+    max-width: 300px;
+    padding: 10px;
+}
+
+.map-balloon h5 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.map-balloon p {
+    margin-bottom: 5px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.map-balloon .btn {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.ymaps-2-1-79-balloon__content {
+    padding: 15px !important;
+}
+
+/* Стили для информации о координатах */
+#coordinates-info, #selected-coordinates {
+    font-family: monospace;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+#selected-address {
+    font-weight: 500;
+    color: #212529;
+}
+
 /* ======================================================
    FORMS
    ====================================================== */

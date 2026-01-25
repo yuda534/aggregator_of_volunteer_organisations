@@ -200,7 +200,7 @@ def event_detail_view(request, pk):
     return render(request, 'pages/event_detail.html', {
         'event': event,
         'can_apply': can_apply,
-        'available_spots': event.required_volunteers - event.approved_count(),
+        'available_spots': event.required_volunteers - event.approved_count,
     })
 
 
@@ -225,10 +225,17 @@ def volunteer_detail_view(request, pk):
 
 
 def map_view(request):
+    # Фильтруем мероприятия: активные, еще не начались, есть координаты
+    now = timezone.now()
     events = Event.objects.filter(
         status='active',
+        start_date__gt=now,  # Мероприятие еще не началось
         latitude__isnull=False,
         longitude__isnull=False
+    ).annotate(
+        approved_count=Count('volunteerapplication', filter=Q(volunteerapplication__status='approved'))
+    ).filter(
+        approved_count__lt=F('required_volunteers')  # Есть свободные места
     )
     return render(request, 'pages/map.html', {'events': events})
 
@@ -332,7 +339,7 @@ def update_application_status_view(request, pk, status):
     
     # Проверяем, не превышен ли лимит волонтеров
     if status == 'approved':
-        approved_count = application.event.approved_count()
+        approved_count = application.event.approved_count
         if approved_count >= application.event.required_volunteers:
             messages.error(request, 'Достигнут лимит волонтёров для этого мероприятия')
             return redirect('organization_applications')
@@ -356,7 +363,7 @@ def mark_no_show_view(request, pk):
 
     application = get_object_or_404(VolunteerApplication, pk=pk)
     if application.event.organization.user != request.user:
-        messages.error(request, 'Вы не можете управлять этой заявкой')
+        messages.error(request, 'Вы не можете управлять этой заявки')
         return redirect('organization_applications')
 
     if application.status != 'approved':
