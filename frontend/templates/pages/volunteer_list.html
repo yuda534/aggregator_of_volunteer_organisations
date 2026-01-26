@@ -28,7 +28,7 @@
                     name="q"
                     class="form-control"
                     placeholder="Имя, навыки, опыт"
-                    value="{{ request.GET.q }}"
+                    value="{{ search_query }}"
                 >
             </div>
 
@@ -39,14 +39,19 @@
                     name="city"
                     class="form-control"
                     placeholder="Например, Москва"
-                    value="{{ request.GET.city }}"
+                    value="{{ city_filter }}"
                 >
             </div>
 
-            <div class="col-md-2 d-grid">
+            <div class="col-md-2 d-grid gap-2">
                 <button type="submit" class="btn btn-outline-primary">
                     Найти
                 </button>
+                {% if search_query or city_filter %}
+                <a href="{% url 'volunteer_list' %}" class="btn btn-outline-secondary">
+                    Сбросить
+                </a>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -94,7 +99,13 @@
     {% else %}
         <div class="text-center py-5 text-muted">
             <h4 class="mb-2">Волонтёры не найдены</h4>
-            <p class="mb-0">Попробуйте изменить параметры поиска</p>
+            <p class="mb-0">
+                {% if search_query or city_filter %}
+                    Попробуйте изменить параметры поиска
+                {% else %}
+                    Волонтёров пока нет в системе
+                {% endif %}
+            </p>
         </div>
     {% endif %}
 </section>

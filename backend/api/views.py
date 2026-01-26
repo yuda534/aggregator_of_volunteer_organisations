@@ -80,8 +80,34 @@ def profile_view(request, user_id):
     elif user_obj.user_type == 'organization':
         profile = get_object_or_404(Organization, user=user_obj)
         
+        # Получаем параметры фильтрации
+        event_status_filter = request.GET.get('event_status', '')
+        event_search = request.GET.get('event_search', '')
+        
         # Все мероприятия организации
-        all_events = Event.objects.filter(organization=profile).order_by('-start_date')
+        all_events = Event.objects.filter(organization=profile)
+        
+        # Применяем фильтры
+        if event_status_filter:
+            if event_status_filter == 'current':
+                all_events = all_events.filter(end_date__gt=now)
+            elif event_status_filter == 'completed':
+                all_events = all_events.filter(end_date__lte=now)
+            elif event_status_filter == 'active':
+                all_events = all_events.filter(status='active')
+            elif event_status_filter == 'draft':
+                all_events = all_events.filter(status='draft')
+            elif event_status_filter == 'cancelled':
+                all_events = all_events.filter(status='cancelled')
+        
+        if event_search:
+            all_events = all_events.filter(
+                Q(title__icontains=event_search) |
+                Q(description__icontains=event_search) |
+                Q(location__icontains=event_search)
+            )
+        
+        all_events = all_events.order_by('-start_date')
         
         # Текущие мероприятия (еще не завершены)
         current_events = all_events.filter(end_date__gt=now)
@@ -114,6 +140,8 @@ def profile_view(request, user_id):
             'current_events': current_events,
             'history_events': history_events,
             'all_events': all_events,
+            'event_status_filter': event_status_filter,
+            'event_search': event_search,
         })
 
     return render(request, 'pages/profile.html', context)
@@ -148,20 +176,72 @@ def create_event_view(request):
 # EVENTS / ORGANIZATIONS / VOLUNTEERS
 # =========================
 def event_list_view(request):
-    # Показываем только активные мероприятия, которые еще не завершены
+    # Получаем параметры фильтрации
+    search_query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    start_date_filter = request.GET.get('start_date', '')
+    
     now = timezone.now()
     
-    # Основной запрос
-    events = Event.objects.filter(
-        status='active',  # только активные
-        end_date__gt=now  # которые еще не завершились
-    ).annotate(
-        approved_count=Count('volunteerapplication', filter=Q(volunteerapplication__status='approved'))
-    ).filter(
-        approved_count__lt=F('required_volunteers')  # где еще есть свободные места
-    ).select_related('organization').order_by('start_date')
+    # Начинаем с базового запроса
+    events = Event.objects.all().annotate(
+        approved_count_annotation=Count('volunteerapplication', filter=Q(volunteerapplication__status='approved'))
+    )
     
-    return render(request, 'pages/event_list.html', {'events': events})
+    # Применяем фильтры
+    if search_query:
+        events = events.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(organization__name__icontains=search_query)
+        )
+    
+    if status_filter:
+        if status_filter == 'active':
+            # Активные мероприятия, которые еще не завершены
+            events = events.filter(
+                status='active',
+                end_date__gt=now
+            ).filter(
+                approved_count_annotation__lt=F('required_volunteers')
+            )
+        elif status_filter == 'completed':
+            # Завершенные мероприятия (по дате или статусу)
+            events = events.filter(
+                Q(end_date__lte=now) | Q(status='completed')
+            )
+        elif status_filter == 'draft':
+            events = events.filter(status='draft')
+        elif status_filter == 'cancelled':
+            events = events.filter(status='cancelled')
+    else:
+        # По умолчанию показываем только активные с свободными местами
+        events = events.filter(
+            status='active',
+            end_date__gt=now,
+            approved_count_annotation__lt=F('required_volunteers')
+        )
+    
+    if start_date_filter:
+        try:
+            # Преобразуем строку в дату
+            start_date = timezone.datetime.strptime(start_date_filter, '%Y-%m-%d')
+            events = events.filter(start_date__date=start_date)
+        except ValueError:
+            pass
+    
+    events = events.select_related('organization').order_by('start_date')
+    
+    # Передаем параметры фильтрации обратно в шаблон
+    context = {
+        'events': events,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'start_date_filter': start_date_filter,
+    }
+    
+    return render(request, 'pages/event_list.html', context)
 
 
 def event_detail_view(request, pk):
@@ -197,16 +277,50 @@ def event_detail_view(request, pk):
         messages.success(request, 'Заявка успешно отправлена')
         return redirect('event_detail', pk=pk)
 
+    # Используем property approved_count
+    available_spots = event.required_volunteers - event.approved_count
+    
     return render(request, 'pages/event_detail.html', {
         'event': event,
         'can_apply': can_apply,
-        'available_spots': event.required_volunteers - event.approved_count,
+        'available_spots': available_spots,
     })
 
 
 def organization_list_view(request):
+    # Получаем параметры фильтрации
+    search_query = request.GET.get('q', '')
+    city_filter = request.GET.get('city', '')
+    
     organizations = Organization.objects.all()
-    return render(request, 'pages/organization_list.html', {'organizations': organizations})
+    
+    # Применяем фильтры
+    if search_query:
+        organizations = organizations.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(address__icontains=search_query)
+        )
+    
+    if city_filter:
+        # Ищем по городу пользователя организации
+        organizations = organizations.filter(
+            Q(user__city__icontains=city_filter) |
+            Q(address__icontains=city_filter)
+        )
+    
+    # Добавляем количество мероприятий для каждой организации
+    organizations = organizations.annotate(
+        events_count=Count('event')
+    )
+    
+    context = {
+        'organizations': organizations,
+        'search_query': search_query,
+        'city_filter': city_filter,
+    }
+    
+    return render(request, 'pages/organization_list.html', context)
 
 
 def organization_detail_view(request, pk):
@@ -215,8 +329,33 @@ def organization_detail_view(request, pk):
 
 
 def volunteer_list_view(request):
+    # Получаем параметры фильтрации
+    search_query = request.GET.get('q', '')
+    city_filter = request.GET.get('city', '')
+    
     volunteers = VolunteerProfile.objects.select_related('user')
-    return render(request, 'pages/volunteer_list.html', {'volunteers': volunteers})
+    
+    # Применяем фильтры
+    if search_query:
+        volunteers = volunteers.filter(
+            Q(user__username__icontains=search_query) |
+            Q(skills__icontains=search_query) |
+            Q(experience__icontains=search_query) |
+            Q(user__bio__icontains=search_query)
+        )
+    
+    if city_filter:
+        volunteers = volunteers.filter(
+            user__city__icontains=city_filter
+        )
+    
+    context = {
+        'volunteers': volunteers,
+        'search_query': search_query,
+        'city_filter': city_filter,
+    }
+    
+    return render(request, 'pages/volunteer_list.html', context)
 
 
 def volunteer_detail_view(request, pk):
@@ -233,9 +372,9 @@ def map_view(request):
         latitude__isnull=False,
         longitude__isnull=False
     ).annotate(
-        approved_count=Count('volunteerapplication', filter=Q(volunteerapplication__status='approved'))
+        approved_count_annotation=Count('volunteerapplication', filter=Q(volunteerapplication__status='approved'))
     ).filter(
-        approved_count__lt=F('required_volunteers')  # Есть свободные места
+        approved_count_annotation__lt=F('required_volunteers')  # Есть свободные места
     )
     return render(request, 'pages/map.html', {'events': events})
 
@@ -290,13 +429,33 @@ def my_applications_view(request):
         return redirect('home')
 
     volunteer = get_object_or_404(VolunteerProfile, user=request.user)
-    applications = (
-        VolunteerApplication.objects
-        .filter(volunteer=volunteer)
-        .select_related('event')
-        .order_by('-applied_at')
-    )
-    return render(request, 'pages/my_applications.html', {'applications': applications})
+    
+    # Получаем параметры фильтрации
+    status_filter = request.GET.get('status', '')
+    event_search = request.GET.get('event', '')
+    
+    applications = VolunteerApplication.objects.filter(volunteer=volunteer)
+    
+    # Фильтрация по статусу
+    if status_filter:
+        applications = applications.filter(status=status_filter)
+    
+    # Поиск по названию мероприятия
+    if event_search:
+        applications = applications.filter(
+            Q(event__title__icontains=event_search) |
+            Q(event__description__icontains=event_search)
+        )
+    
+    applications = applications.select_related('event', 'event__organization').order_by('-applied_at')
+    
+    context = {
+        'applications': applications,
+        'status_filter': status_filter,
+        'event_search': event_search,
+    }
+    
+    return render(request, 'pages/my_applications.html', context)
 
 
 def organization_applications_view(request):
@@ -308,17 +467,43 @@ def organization_applications_view(request):
         return redirect('home')
 
     organization = get_object_or_404(Organization, user=request.user)
-
-    applications = (
-        VolunteerApplication.objects
-        .filter(event__organization=organization)
-        .select_related('volunteer__user', 'event')
-        .order_by('-applied_at')
-    )
-
-    return render(request, 'pages/organization_applications.html', {
-        'applications': applications
-    })
+    
+    # Получаем параметры фильтрации
+    status_filter = request.GET.get('status', '')
+    volunteer_search = request.GET.get('volunteer', '')
+    event_search = request.GET.get('event', '')
+    
+    applications = VolunteerApplication.objects.filter(event__organization=organization)
+    
+    # Фильтрация по статусу
+    if status_filter:
+        applications = applications.filter(status=status_filter)
+    
+    # Поиск по имени волонтёра
+    if volunteer_search:
+        applications = applications.filter(
+            Q(volunteer__user__username__icontains=volunteer_search) |
+            Q(volunteer__user__email__icontains=volunteer_search)
+        )
+    
+    # Поиск по названию мероприятия
+    if event_search:
+        applications = applications.filter(
+            Q(event__title__icontains=event_search) |
+            Q(event__description__icontains=event_search)
+        )
+    
+    applications = applications.select_related('volunteer__user', 'event').order_by('-applied_at')
+    
+    context = {
+        'applications': applications,
+        'status_filter': status_filter,
+        'volunteer_search': volunteer_search,
+        'event_search': event_search,
+        'organization': organization,  # Добавляем организацию для шаблона
+    }
+    
+    return render(request, 'pages/organization_applications.html', context)
 
 
 def update_application_status_view(request, pk, status):

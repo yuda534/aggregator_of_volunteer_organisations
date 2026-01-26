@@ -33,20 +33,26 @@
                     type="text"
                     name="q"
                     class="form-control"
-                    placeholder="Название или описание"
-                    value="{{ request.GET.q }}"
+                    placeholder="Название, описание, адрес или организация"
+                    value="{{ search_query }}"
                 >
             </div>
 
             <div class="col-md-3">
                 <label class="form-label">Статус</label>
                 <select name="status" class="form-select">
-                    <option value="">Все</option>
-                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>
-                        Активные
+                    <option value="">Все активные</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>
+                        Активные (свободные места)
                     </option>
-                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>
                         Завершённые
+                    </option>
+                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>
+                        Черновики
+                    </option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>
+                        Отменённые
                     </option>
                 </select>
             </div>
@@ -57,14 +63,19 @@
                     type="date"
                     name="start_date"
                     class="form-control"
-                    value="{{ request.GET.start_date }}"
+                    value="{{ start_date_filter }}"
                 >
             </div>
 
-            <div class="col-md-2 d-grid">
+            <div class="col-md-2 d-grid gap-2">
                 <button type="submit" class="btn btn-outline-primary">
                     Применить
                 </button>
+                {% if search_query or status_filter or start_date_filter %}
+                <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">
+                    Сбросить
+                </a>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -83,14 +94,18 @@
                                     {{ event.title }}
                                 </h5>
                                 <span class="badge 
-                                    {% if event.is_open_for_applications %}bg-success
-                                    {% elif event.approved_count >= event.required_volunteers %}bg-warning
-                                    {% elif event.is_completed %}bg-secondary
+                                    {% if event.status == 'active' and event.end_date > now and event.approved_count_annotation < event.required_volunteers %}bg-success
+                                    {% elif event.status == 'active' and event.approved_count_annotation >= event.required_volunteers %}bg-warning
+                                    {% elif event.status == 'completed' or event.end_date <= now %}bg-secondary
+                                    {% elif event.status == 'draft' %}bg-secondary
+                                    {% elif event.status == 'cancelled' %}bg-danger
                                     {% else %}bg-info{% endif %}">
-                                    {% if event.is_open_for_applications %}Набор открыт
-                                    {% elif event.approved_count >= event.required_volunteers %}Набор закрыт
-                                    {% elif event.is_completed %}Завершено
-                                    {% else %}{{ event.get_status_display_with_details }}{% endif %}
+                                    {% if event.status == 'active' and event.end_date > now and event.approved_count_annotation < event.required_volunteers %}Набор открыт
+                                    {% elif event.status == 'active' and event.approved_count_annotation >= event.required_volunteers %}Набор закрыт
+                                    {% elif event.status == 'completed' or event.end_date <= now %}Завершено
+                                    {% elif event.status == 'draft' %}Черновик
+                                    {% elif event.status == 'cancelled' %}Отменено
+                                    {% else %}{{ event.status }}{% endif %}
                                 </span>
                             </div>
 
@@ -117,7 +132,7 @@
 
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="small">
-                                        👥 {{ event.approved_count }}/{{ event.required_volunteers }}
+                                        👥 {{ event.approved_count_annotation }}/{{ event.required_volunteers }}
                                     </div>
                                     <a
                                         href="{% url 'event_detail' event.id %}"
@@ -135,7 +150,13 @@
     {% else %}
         <div class="text-center py-5 text-muted">
             <h4 class="mb-2">Мероприятия не найдены</h4>
-            <p class="mb-0">Попробуйте изменить параметры поиска</p>
+            <p class="mb-0">
+                {% if search_query or status_filter or start_date_filter %}
+                    Попробуйте изменить параметры поиска
+                {% else %}
+                    Активных мероприятий пока нет
+                {% endif %}
+            </p>
         </div>
     {% endif %}
 </section>

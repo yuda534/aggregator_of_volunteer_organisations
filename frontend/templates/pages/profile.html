@@ -202,29 +202,60 @@
         {% elif user_obj.user_type == 'organization' %}
 
             <!-- CURRENT EVENTS -->
-            {% if current_events %}
+            {% if current_events or event_search or event_status_filter %}
             <section class="mb-4">
                 <div class="card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="mb-0">Текущие мероприятия</h4>
+                        <h4 class="mb-0">Мероприятия организации</h4>
                         <div class="d-flex gap-2">
                             <a href="{% url 'create_event' %}" class="btn btn-sm btn-primary">
                                 + Создать
                             </a>
                         </div>
                     </div>
+                    
+                    <!-- ФИЛЬТРЫ ДЛЯ МЕРОПРИЯТИЙ -->
+                    <div class="mb-3">
+                        <form method="get" class="row g-2">
+                            <div class="col-md-5">
+                                <input type="text" name="event_search" class="form-control form-control-sm" 
+                                       placeholder="Поиск по мероприятиям" value="{{ event_search }}">
+                            </div>
+                            <div class="col-md-4">
+                                <select name="event_status" class="form-select form-select-sm">
+                                    <option value="">Все статусы</option>
+                                    <option value="current" {% if event_status_filter == 'current' %}selected{% endif %}>Текущие</option>
+                                    <option value="completed" {% if event_status_filter == 'completed' %}selected{% endif %}>Завершённые</option>
+                                    <option value="active" {% if event_status_filter == 'active' %}selected{% endif %}>Активные</option>
+                                    <option value="draft" {% if event_status_filter == 'draft' %}selected{% endif %}>Черновики</option>
+                                    <option value="cancelled" {% if event_status_filter == 'cancelled' %}selected{% endif %}>Отменённые</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-grid">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Применить</button>
+                                {% if event_search or event_status_filter %}
+                                <a href="{% url 'profile' user_obj.id %}" class="btn btn-sm btn-outline-secondary mt-1">
+                                    Сбросить
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                    
+                    {% if all_events %}
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <thead>
                                 <tr>
                                     <th>Название</th>
                                     <th>Статус</th>
+                                    <th>Дата начала</th>
                                     <th>Волонтёры</th>
                                     <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for event in current_events %}
+                                {% for event in all_events %}
                                 <tr>
                                     <td>{{ event.title }}</td>
                                     <td>
@@ -237,6 +268,9 @@
                                         {% elif event.status == 'cancelled' %}
                                             <span class="badge bg-danger">Отменено</span>
                                         {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ event.start_date|date:"d.m.Y H:i" }}
                                     </td>
                                     <td>
                                         {{ event.approved_count }}/{{ event.required_volunteers }}
@@ -252,6 +286,15 @@
                             </tbody>
                         </table>
                     </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        {% if event_search or event_status_filter %}
+                            По вашему запросу мероприятий не найдено.
+                        {% else %}
+                            У организации пока нет мероприятий.
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </section>
             {% endif %}

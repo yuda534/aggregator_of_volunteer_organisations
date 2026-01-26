@@ -13,6 +13,49 @@
         </a>
     </div>
 
+    <!-- ФИЛЬТРЫ -->
+    <div class="card p-3 mb-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Статус заявки</label>
+                <select name="status" class="form-select">
+                    <option value="">Все статусы</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>
+                        На рассмотрении
+                    </option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>
+                        Одобренные
+                    </option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>
+                        Отклонённые
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Поиск по мероприятию</label>
+                <input
+                    type="text"
+                    name="event"
+                    class="form-control"
+                    placeholder="Название мероприятия"
+                    value="{{ event_search }}"
+                >
+            </div>
+
+            <div class="col-md-4 d-grid gap-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    Применить
+                </button>
+                {% if status_filter or event_search %}
+                <a href="{% url 'my_applications' %}" class="btn btn-outline-secondary">
+                    Сбросить
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
     {% if applications %}
         <div class="table-responsive">
             <table class="table table-hover align-middle">
@@ -43,7 +86,7 @@
                             </td>
 
                             <td>
-                                {{ application.created_at|date:"d.m.Y" }}
+                                {{ application.applied_at|date:"d.m.Y H:i" }}
                             </td>
 
                             <td>
@@ -71,7 +114,11 @@
         </div>
     {% else %}
         <div class="alert alert-info">
-            У вас пока нет заявок. Перейдите к списку мероприятий и подайте первую заявку.
+            {% if status_filter or event_search %}
+                По вашему запросу заявок не найдено.
+            {% else %}
+                У вас пока нет заявок. Перейдите к списку мероприятий и подайте первую заявку.
+            {% endif %}
         </div>
     {% endif %}
 </div>

@@ -67,7 +67,7 @@
 
         // Добавляем маркеры мероприятий
         {% for event in events %}
-            var approvedCount = {{ event.approved_count }};
+            var approvedCount = {{ event.approved_count_annotation }};
             var requiredVolunteers = {{ event.required_volunteers }};
             var freeSpots = requiredVolunteers - approvedCount;
             var startDate = new Date('{{ event.start_date|date:"Y-m-d H:i:s" }}');

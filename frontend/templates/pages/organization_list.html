@@ -27,8 +27,8 @@
                     type="text"
                     name="q"
                     class="form-control"
-                    placeholder="Название или описание"
-                    value="{{ request.GET.q }}"
+                    placeholder="Название, описание или адрес"
+                    value="{{ search_query }}"
                 >
             </div>
 
@@ -39,14 +39,19 @@
                     name="city"
                     class="form-control"
                     placeholder="Например, Москва"
-                    value="{{ request.GET.city }}"
+                    value="{{ city_filter }}"
                 >
             </div>
 
-            <div class="col-md-2 d-grid">
+            <div class="col-md-2 d-grid gap-2">
                 <button type="submit" class="btn btn-outline-primary">
                     Найти
                 </button>
+                {% if search_query or city_filter %}
+                <a href="{% url 'organization_list' %}" class="btn btn-outline-secondary">
+                    Сбросить
+                </a>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -70,7 +75,9 @@
 
                             <div class="mt-auto">
                                 <div class="small text-muted mb-3">
-                                    📍 {{ org.city }}<br>
+                                    {% if org.user.city %}
+                                        📍 {{ org.user.city }}<br>
+                                    {% endif %}
                                     📅 Мероприятий: {{ org.events_count }}
                                 </div>
 
@@ -89,7 +96,13 @@
     {% else %}
         <div class="text-center py-5 text-muted">
             <h4 class="mb-2">Организации не найдены</h4>
-            <p class="mb-0">Попробуйте изменить параметры поиска</p>
+            <p class="mb-0">
+                {% if search_query or city_filter %}
+                    Попробуйте изменить параметры поиска
+                {% else %}
+                    Организаций пока нет в системе
+                {% endif %}
+            </p>
         </div>
     {% endif %}
 </section>
