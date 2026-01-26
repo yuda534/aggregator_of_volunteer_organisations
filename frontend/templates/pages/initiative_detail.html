@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}{{ initiative.title }} — Go2Help{% endblock %}
+
+{% block content %}
+
+{% include 'includes/back_button.html' %}
+
+<!-- INITIATIVE HEADER -->
+<section class="mb-4">
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                {% if initiative.volunteer.user.avatar %}
+                    <img src="{{ initiative.volunteer.user.avatar.url }}" alt="Аватар" 
+                         class="rounded-circle" 
+                         style="width: 60px; height: 60px; object-fit: cover;">
+                {% endif %}
+                <div>
+                    <h1 class="mb-1">{{ initiative.title }}</h1>
+                    <div class="text-muted mb-2">
+                        👤 {{ initiative.volunteer.user.username }}
+                        &nbsp;•&nbsp;
+                        📅 {{ initiative.created_at|date:"d.m.Y" }}
+                    </div>
+                </div>
+            </div>
+
+            <span class="badge bg-{{ initiative.get_status_display_color }} fs-6">
+                {{ initiative.get_status_display }}
+            </span>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+
+    <!-- LEFT COLUMN -->
+    <div class="col-lg-8">
+
+        <!-- IMAGE -->
+        {% if initiative.image %}
+        <section class="mb-4">
+            <div class="card">
+                <img src="{{ initiative.image.url }}" 
+                     class="card-img-top" 
+                     alt="{{ initiative.title }}"
+                     style="max-height: 400px; object-fit: cover;">
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- DESCRIPTION -->
+        <section class="mb-4">
+            <div class="card p-4">
+                <h4 class="mb-3">Описание инициативы</h4>
+                <p class="mb-0">
+                    {{ initiative.description|linebreaks }}
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="col-lg-4">
+
+        <!-- VOLUNTEER CARD -->
+        <section class="mb-4">
+            <div class="card p-4">
+                <h5 class="mb-3">Автор инициативы</h5>
+                
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {% if initiative.volunteer.user.avatar %}
+                        <img src="{{ initiative.volunteer.user.avatar.url }}" alt="Аватар" 
+                             class="rounded-circle" 
+                             style="width: 60px; height: 60px; object-fit: cover;">
+                    {% endif %}
+                    <div>
+                        <p class="mb-1 fw-semibold">{{ initiative.volunteer.user.username }}</p>
+                        <p class="text-muted mb-0 small">Волонтёр</p>
+                    </div>
+                </div>
+
+                <a
+                    href="{% url 'volunteer_detail' initiative.volunteer.id %}"
+                    class="btn btn-outline-secondary w-100"
+                >
+                    Профиль волонтёра
+                </a>
+            </div>
+        </section>
+
+        <!-- ACTIONS CARD -->
+        <section>
+            <div class="card p-4">
+                {% if user == initiative.volunteer.user %}
+                    <h5 class="mb-3">Управление инициативой</h5>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'edit_initiative' initiative.id %}" 
+                           class="btn btn-outline-primary">
+                            Редактировать
+                        </a>
+                        
+                        <button type="button" 
+                                class="btn btn-outline-danger" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#deleteModal">
+                            Удалить инициативу
+                        </button>
+                    </div>
+                {% elif user.is_authenticated and user.user_type == 'organization' %}
+                    <h5 class="mb-3">Откликнуться на инициативу</h5>
+                    <p class="text-muted small mb-3">
+                        Если идея вам интересна, свяжитесь с автором
+                    </p>
+                    
+                    <a href="{% url 'volunteer_detail' initiative.volunteer.id %}"
+                       class="btn btn-primary w-100">
+                        Связаться с автором
+                    </a>
+                {% endif %}
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Удаление инициативы</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Вы уверены, что хотите удалить инициативу "{{ initiative.title }}"?
+                Это действие нельзя отменить.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form method="post" action="{% url 'delete_initiative' initiative.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

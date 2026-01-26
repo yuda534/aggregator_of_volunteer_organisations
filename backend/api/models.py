@@ -140,19 +140,27 @@ class Event(models.Model):
             self.save(update_fields=['status'])
     
     def get_status_display_with_details(self):
-        """Возвращает детальное отображение статуса"""
+        """Возвращает детальное отображение статуса на русском языке"""
         now = timezone.now()
         
+        # Проверяем, завершено ли мероприятие по времени
         if now > self.end_date:
             return 'Завершено'
-        elif self.approved_count >= self.required_volunteers:
-            return 'Набор закрыт'
-        elif self.status == 'active':
-            return 'Набор открыт'
-        elif self.status == 'draft':
-            return 'Черновик'
+        
+        # Проверяем статус в БД
+        if self.status == 'completed':
+            return 'Завершено'
         elif self.status == 'cancelled':
             return 'Отменено'
+        elif self.status == 'draft':
+            return 'Черновик'
+        elif self.status == 'active':
+            # Для активных проверяем, есть ли свободные места
+            if self.approved_count >= self.required_volunteers:
+                return 'Набор закрыт'
+            else:
+                return 'Набор открыт'
+        
         return 'Неизвестно'
 
 
@@ -196,7 +204,7 @@ class VolunteerReview(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('volunteer', 'event')
+        unique_together = ('volunteer', 'event', 'organization')
         verbose_name = "Отзыв о волонтёре"
         verbose_name_plural = "Отзывы о волонтёрах"
 
@@ -228,3 +236,38 @@ class OrganizationReview(models.Model):
 
     def __str__(self):
         return f"Отзыв об {self.organization} от {self.volunteer}"
+
+
+# ======================================================
+# INITIATIVE
+# ======================================================
+
+class Initiative(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Черновик'),
+        ('published', 'Опубликовано'),
+        ('in_progress', 'В процессе'),
+        ('completed', 'Завершено'),
+        ('cancelled', 'Отменено'),
+    )
+    
+    volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    image = models.ImageField(upload_to='initiatives/', blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
+    
+    def get_status_display_color(self):
+        colors = {
+            'draft': 'secondary',
+            'published': 'info',
+            'in_progress': 'warning',
+            'completed': 'success',
+            'cancelled': 'danger',
+        }
+        return colors.get(self.status, 'secondary')

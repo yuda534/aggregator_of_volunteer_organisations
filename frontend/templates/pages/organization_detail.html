@@ -9,17 +9,29 @@
 <section class="mb-4">
     <div class="card p-4">
         <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-            <div>
-                <h1 class="mb-1">{{ organization.name }}</h1>
+            <div class="d-flex align-items-center gap-3">
+                {% if organization.logo %}
+                    <img src="{{ organization.logo.url }}" alt="Логотип {{ organization.name }}" 
+                         class="rounded" 
+                         style="width: 80px; height: 80px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded bg-light d-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <span class="text-muted">Лого</span>
+                    </div>
+                {% endif %}
+                <div>
+                    <h1 class="mb-1">{{ organization.name }}</h1>
 
-                <div class="text-muted mb-2">
-                    {% if organization.address %}
-                        📍 {{ organization.address }}
-                    {% endif %}
-                </div>
+                    <div class="text-muted mb-2">
+                        {% if organization.address %}
+                            📍 {{ organization.address }}
+                        {% endif %}
+                    </div>
 
-                <div class="fw-semibold">
-                    ⭐ Рейтинг: {{ organization.rating|default:"0.0" }}
+                    <div class="fw-semibold">
+                        ⭐ Рейтинг: {{ organization.rating|default:"0.0" }}
+                    </div>
                 </div>
             </div>
 

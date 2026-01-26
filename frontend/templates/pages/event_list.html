@@ -41,15 +41,12 @@
             <div class="col-md-3">
                 <label class="form-label">Статус</label>
                 <select name="status" class="form-select">
-                    <option value="">Все активные</option>
+                    <option value="">Все мероприятия</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>
-                        Активные (свободные места)
+                        Только активные
                     </option>
                     <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>
                         Завершённые
-                    </option>
-                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>
-                        Черновики
                     </option>
                     <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>
                         Отменённые
@@ -93,20 +90,17 @@
                                 <h5 class="card-title mb-0">
                                     {{ event.title }}
                                 </h5>
+                                {% with status=event.get_status_display_with_details %}
                                 <span class="badge 
-                                    {% if event.status == 'active' and event.end_date > now and event.approved_count_annotation < event.required_volunteers %}bg-success
-                                    {% elif event.status == 'active' and event.approved_count_annotation >= event.required_volunteers %}bg-warning
-                                    {% elif event.status == 'completed' or event.end_date <= now %}bg-secondary
-                                    {% elif event.status == 'draft' %}bg-secondary
-                                    {% elif event.status == 'cancelled' %}bg-danger
+                                    {% if status == 'Набор открыт' %}bg-success
+                                    {% elif status == 'Набор закрыт' %}bg-warning
+                                    {% elif status == 'Завершено' %}bg-secondary
+                                    {% elif status == 'Черновик' %}bg-secondary
+                                    {% elif status == 'Отменено' %}bg-danger
                                     {% else %}bg-info{% endif %}">
-                                    {% if event.status == 'active' and event.end_date > now and event.approved_count_annotation < event.required_volunteers %}Набор открыт
-                                    {% elif event.status == 'active' and event.approved_count_annotation >= event.required_volunteers %}Набор закрыт
-                                    {% elif event.status == 'completed' or event.end_date <= now %}Завершено
-                                    {% elif event.status == 'draft' %}Черновик
-                                    {% elif event.status == 'cancelled' %}Отменено
-                                    {% else %}{{ event.status }}{% endif %}
+                                    {{ status }}
                                 </span>
+                                {% endwith %}
                             </div>
 
                             <p class="card-text mt-2">
@@ -154,7 +148,7 @@
                 {% if search_query or status_filter or start_date_filter %}
                     Попробуйте изменить параметры поиска
                 {% else %}
-                    Активных мероприятий пока нет
+                    Мероприятий пока нет
                 {% endif %}
             </p>
         </div>

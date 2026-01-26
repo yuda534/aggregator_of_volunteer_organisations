@@ -11,6 +11,7 @@ urlpatterns = [
     # Events
     path('events/', views.event_list_view, name='event_list'),
     path('events/<int:pk>/', views.event_detail_view, name='event_detail'),
+    path('events/<int:pk>/cancel/', views.cancel_event_view, name='cancel_event'),
 
     # Organizations
     path('organizations/', views.organization_list_view, name='organization_list'),
@@ -19,6 +20,13 @@ urlpatterns = [
     # Volunteers
     path('volunteers/', views.volunteer_list_view, name='volunteer_list'),
     path('volunteers/<int:pk>/', views.volunteer_detail_view, name='volunteer_detail'),
+
+    # Initiatives
+    path('initiatives/', views.initiative_list_view, name='initiative_list'),
+    path('initiatives/<int:pk>/', views.initiative_detail_view, name='initiative_detail'),
+    path('initiatives/create/', views.create_initiative_view, name='create_initiative'),
+    path('initiatives/<int:pk>/edit/', views.edit_initiative_view, name='edit_initiative'),
+    path('initiatives/<int:pk>/delete/', views.delete_initiative_view, name='delete_initiative'),
 
     # Map
     path('map/', views.map_view, name='map'),

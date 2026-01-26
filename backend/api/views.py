@@ -11,11 +11,13 @@ from .forms import (
     EventForm,
     UserProfileForm,            
     VolunteerProfileForm,       
-    OrganizationProfileForm    
+    OrganizationProfileForm,
+    InitiativeForm    
 )
 from .models import (
     CustomUser, Event, Organization, VolunteerProfile,
-    VolunteerApplication, VolunteerReview, OrganizationReview
+    VolunteerApplication, VolunteerReview, OrganizationReview,
+    Initiative
 )
 
 # =========================
@@ -26,7 +28,9 @@ def home_view(request):
     if request.user.is_authenticated:
         if request.user.user_type == 'volunteer':
             latest_events = Event.objects.filter(status='active').order_by('-created_at')[:3]
+            latest_initiatives = Initiative.objects.filter(status='published').order_by('-created_at')[:3]
             context['latest_events'] = latest_events
+            context['latest_initiatives'] = latest_initiatives
         elif request.user.user_type == 'organization':
             context['can_create_event'] = True
     return render(request, 'pages/home.html', context)
@@ -60,6 +64,9 @@ def profile_view(request, user_id):
             event__end_date__lte=now
         )
         
+        # Инициативы волонтёра
+        initiatives = Initiative.objects.filter(volunteer=profile).order_by('-created_at')
+        
         # Проверяем, можно ли оставить отзыв для каждого мероприятия
         for app in history_applications:
             # Проверяем, есть ли уже отзыв от волонтера об этой организации по этому мероприятию
@@ -75,6 +82,7 @@ def profile_view(request, user_id):
             'current_applications': current_applications,
             'history_applications': history_applications,
             'all_applications': all_applications,
+            'initiatives': initiatives,
         })
         
     elif user_obj.user_type == 'organization':
@@ -128,7 +136,8 @@ def profile_view(request, user_id):
             for app in approved_volunteers:
                 has_review = VolunteerReview.objects.filter(
                     volunteer=app.volunteer,
-                    event=event
+                    event=event,
+                    organization=profile  # Добавлено organization
                 ).exists()
                 event.volunteers_with_reviews.append({
                     'volunteer': app.volunteer,
@@ -173,6 +182,52 @@ def create_event_view(request):
 
 
 # =========================
+# CANCEL EVENT
+# =========================
+def cancel_event_view(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    if request.user.user_type != 'organization':
+        messages.error(request, 'Доступ только для организаций')
+        return redirect('home')
+    
+    event = get_object_or_404(Event, pk=pk)
+    organization = get_object_or_404(Organization, user=request.user)
+    
+    # Проверяем, что мероприятие принадлежит организации пользователя
+    if event.organization != organization:
+        messages.error(request, 'Вы не можете отменять чужие мероприятия')
+        return redirect('event_detail', pk=pk)
+    
+    # Проверяем, что мероприятие можно отменить (не завершено и не отменено)
+    if event.status in ['completed', 'cancelled']:
+        if event.status == 'completed':
+            messages.error(request, 'Нельзя отменить завершённое мероприятие')
+        else:
+            messages.error(request, 'Мероприятие уже отменено')
+        return redirect('event_detail', pk=pk)
+    
+    # Отменяем мероприятие
+    event.status = 'cancelled'
+    event.save(update_fields=['status'])
+    
+    # ОТКЛОНЯЕМ ВСЕ ЗАЯВКИ (включая одобренные)
+    all_applications = VolunteerApplication.objects.filter(event=event)
+    rejected_count = 0
+    
+    for application in all_applications:
+        # Сохраняем только если статус меняется
+        if application.status != 'rejected':
+            application.status = 'rejected'
+            application.save(update_fields=['status'])
+            rejected_count += 1
+    
+    messages.success(request, f'Мероприятие отменено. Отклонено заявок: {rejected_count}')
+    return redirect('event_detail', pk=pk)
+
+
+# =========================
 # EVENTS / ORGANIZATIONS / VOLUNTEERS
 # =========================
 def event_list_view(request):
@@ -199,29 +254,21 @@ def event_list_view(request):
     
     if status_filter:
         if status_filter == 'active':
-            # Активные мероприятия, которые еще не завершены
+            # Только активные мероприятия
             events = events.filter(
                 status='active',
                 end_date__gt=now
-            ).filter(
-                approved_count_annotation__lt=F('required_volunteers')
             )
         elif status_filter == 'completed':
-            # Завершенные мероприятия (по дате или статусу)
+            # Завершенные мероприятия
             events = events.filter(
                 Q(end_date__lte=now) | Q(status='completed')
             )
-        elif status_filter == 'draft':
-            events = events.filter(status='draft')
         elif status_filter == 'cancelled':
             events = events.filter(status='cancelled')
     else:
-        # По умолчанию показываем только активные с свободными местами
-        events = events.filter(
-            status='active',
-            end_date__gt=now,
-            approved_count_annotation__lt=F('required_volunteers')
-        )
+        # "Все мероприятия" - показываем все, кроме черновиков
+        events = events.exclude(status='draft')
     
     if start_date_filter:
         try:
@@ -239,6 +286,7 @@ def event_list_view(request):
         'search_query': search_query,
         'status_filter': status_filter,
         'start_date_filter': start_date_filter,
+        'now': now,
     }
     
     return render(request, 'pages/event_list.html', context)
@@ -250,7 +298,7 @@ def event_detail_view(request, pk):
     
     # Проверяем, можно ли подавать заявки
     can_apply = (
-        event.is_open_for_applications()
+        event.get_status_display_with_details() == 'Набор открыт'
         and request.user.is_authenticated
         and request.user.user_type == 'volunteer'
     )
@@ -364,19 +412,122 @@ def volunteer_detail_view(request, pk):
 
 
 def map_view(request):
-    # Фильтруем мероприятия: активные, еще не начались, есть координаты
+    # Фильтруем мероприятия: активные, есть координаты
     now = timezone.now()
     events = Event.objects.filter(
         status='active',
-        start_date__gt=now,  # Мероприятие еще не началось
         latitude__isnull=False,
         longitude__isnull=False
     ).annotate(
         approved_count_annotation=Count('volunteerapplication', filter=Q(volunteerapplication__status='approved'))
-    ).filter(
-        approved_count_annotation__lt=F('required_volunteers')  # Есть свободные места
     )
     return render(request, 'pages/map.html', {'events': events})
+
+
+# =========================
+# INITIATIVES
+# =========================
+
+def initiative_list_view(request):
+    # Получаем параметры фильтрации
+    search_query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    
+    initiatives = Initiative.objects.all()
+    
+    # Применяем фильтры
+    if search_query:
+        initiatives = initiatives.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    if status_filter:
+        initiatives = initiatives.filter(status=status_filter)
+    else:
+        # По умолчанию показываем только опубликованные
+        initiatives = initiatives.filter(status='published')
+    
+    initiatives = initiatives.select_related('volunteer__user').order_by('-created_at')
+    
+    context = {
+        'initiatives': initiatives,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'pages/initiative_list.html', context)
+
+
+def initiative_detail_view(request, pk):
+    initiative = get_object_or_404(Initiative, pk=pk)
+    return render(request, 'pages/initiative_detail.html', {'initiative': initiative})
+
+
+def create_initiative_view(request):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    if request.user.user_type != 'volunteer':
+        messages.error(request, 'Только волонтёры могут создавать инициативы')
+        return redirect('home')
+    
+    volunteer = get_object_or_404(VolunteerProfile, user=request.user)
+    
+    if request.method == 'POST':
+        form = InitiativeForm(request.POST, request.FILES)
+        if form.is_valid():
+            initiative = form.save(commit=False)
+            initiative.volunteer = volunteer
+            initiative.save()
+            messages.success(request, 'Инициатива создана')
+            return redirect('initiative_detail', pk=initiative.pk)
+    else:
+        form = InitiativeForm()
+    
+    return render(request, 'pages/create_initiative.html', {'form': form})
+
+
+def edit_initiative_view(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    initiative = get_object_or_404(Initiative, pk=pk)
+    
+    # Проверяем, что пользователь - автор инициативы
+    if initiative.volunteer.user != request.user:
+        messages.error(request, 'Вы не можете редактировать чужие инициативы')
+        return redirect('initiative_detail', pk=pk)
+    
+    if request.method == 'POST':
+        form = InitiativeForm(request.POST, request.FILES, instance=initiative)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Инициатива обновлена')
+            return redirect('initiative_detail', pk=initiative.pk)
+    else:
+        form = InitiativeForm(instance=initiative)
+    
+    return render(request, 'pages/edit_initiative.html', {'form': form, 'initiative': initiative})
+
+
+def delete_initiative_view(request, pk):
+    if not request.user.is_authenticated:
+        return redirect('login')
+    
+    initiative = get_object_or_404(Initiative, pk=pk)
+    
+    # Проверяем, что пользователь - автор инициативы
+    if initiative.volunteer.user != request.user:
+        messages.error(request, 'Вы не можете удалять чужие инициативы')
+        return redirect('initiative_detail', pk=pk)
+    
+    if request.method == 'POST':
+        initiative.delete()
+        messages.success(request, 'Инициатива удалена')
+        return redirect('initiative_list')
+    
+    return render(request, 'pages/delete_initiative.html', {'initiative': initiative})
 
 
 # =========================
@@ -599,7 +750,11 @@ def leave_volunteer_review_view(request, event_id, volunteer_id):
         return redirect('organization_applications')
     
     # Проверяем, что отзыв еще не оставлен
-    if VolunteerReview.objects.filter(volunteer=volunteer, event=event).exists():
+    if VolunteerReview.objects.filter(
+        volunteer=volunteer, 
+        event=event,
+        organization=organization
+    ).exists():
         messages.warning(request, 'Вы уже оставили отзыв об этом волонтёре')
         return redirect('organization_applications')
 

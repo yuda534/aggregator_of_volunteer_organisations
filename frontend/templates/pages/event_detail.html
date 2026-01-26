@@ -22,15 +22,17 @@
                 </div>
             </div>
 
-            {% if event.is_open_for_applications %}
-                <span class="badge bg-success fs-6">Набор открыт</span>
-            {% elif event.approved_count >= event.required_volunteers %}
-                <span class="badge bg-warning fs-6">Набор закрыт</span>
-            {% elif event.is_completed %}
-                <span class="badge bg-secondary fs-6">Завершено</span>
-            {% else %}
-                <span class="badge bg-info fs-6">{{ event.get_status_display_with_details }}</span>
-            {% endif %}
+            {% with status=event.get_status_display_with_details %}
+            <span class="badge 
+                {% if status == 'Набор открыт' %}bg-success
+                {% elif status == 'Набор закрыт' %}bg-warning
+                {% elif status == 'Завершено' %}bg-secondary
+                {% elif status == 'Черновик' %}bg-secondary
+                {% elif status == 'Отменено' %}bg-danger
+                {% else %}bg-info{% endif %} fs-6">
+                {{ status }}
+            </span>
+            {% endwith %}
         </div>
     </div>
 </section>
@@ -71,7 +73,7 @@
                         ✅ Одобрено заявок:
                         <strong>{{ event.approved_count }}</strong>
                     </li>
-                    {% if event.is_open_for_applications %}
+                    {% if event.get_status_display_with_details == 'Набор открыт' %}
                     <li class="list-group-item px-0">
                         🎯 Свободных мест:
                         <strong>{{ available_spots }}</strong>
@@ -99,39 +101,62 @@
         <!-- ACTION CARD -->
         <section class="mb-4">
             <div class="card p-4 text-center">
-                {% if event.is_completed %}
+                {% with status=event.get_status_display_with_details %}
+                {% if status == 'Завершено' %}
                     <div class="alert alert-secondary">
                         <i class="fas fa-calendar-check"></i> Мероприятие завершено
                     </div>
-                {% elif event.approved_count >= event.required_volunteers %}
-                    <div class="alert alert-warning">
-                        <i class="fas fa-user-check"></i> Набор волонтёров завершён
+                {% elif status == 'Отменено' %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-times-circle"></i> Мероприятие отменено
                     </div>
-                {% elif user.is_authenticated and user.user_type == 'volunteer' %}
-                    {% if event.is_open_for_applications %}
-                        <form method="post">
+                {% elif status == 'Набор закрыт' or status == 'Набор открыт' %}
+                    <!-- Кнопка отмены только для организатора -->
+                    {% if user.is_authenticated and user.user_type == 'organization' and event.organization.user == user %}
+                        <div class="mb-3">
+                            <form method="post" action="{% url 'cancel_event' event.id %}" 
+                            onsubmit="return confirm('Вы уверены, что хотите отменить это мероприятие? ВСЕ заявки (включая одобренные) будут отклонены.');">
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <span class="badge bg-info">Осталось мест: {{ available_spots }}</span>
-                            </div>
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                Подать заявку
+                            <button type="submit" class="btn btn-danger w-100">
+                                Отменить мероприятие
                             </button>
                         </form>
-                    {% else %}
-                        <p class="text-muted mb-0">
-                            Набор на это мероприятие закрыт
-                        </p>
+                        <div class="text-muted small mt-2 text-center">
+                            ⚠️ При отмене мероприятия ВСЕ заявки будут отклонены
+                        </div>
                     {% endif %}
-                {% elif not user.is_authenticated %}
-                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg w-100">
-                        Войти, чтобы подать заявку
-                    </a>
+                    
+                    {% if status == 'Набор открыт' %}
+                        {% if user.is_authenticated and user.user_type == 'volunteer' %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <span class="badge bg-info">Осталось мест: {{ available_spots }}</span>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    Подать заявку
+                                </button>
+                            </form>
+                        {% elif not user.is_authenticated %}
+                            <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg w-100">
+                                Войти, чтобы подать заявку
+                            </a>
+                        {% else %}
+                            <p class="text-muted mb-0">
+                                Заявки могут подавать только волонтёры
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-user-check"></i> Набор волонтёров завершён
+                        </div>
+                    {% endif %}
                 {% else %}
                     <p class="text-muted mb-0">
-                        Заявки могут подавать только волонтёры
+                        {{ status }}
                     </p>
                 {% endif %}
+                {% endwith %}
             </div>
         </section>
 

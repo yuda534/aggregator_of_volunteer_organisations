@@ -7,7 +7,8 @@ from .models import (
     Event,
     VolunteerApplication,
     VolunteerReview,
-    OrganizationReview
+    OrganizationReview,
+    Initiative
 )
 
 # =========================
@@ -245,6 +246,7 @@ class UserProfileForm(forms.ModelForm):
         widgets = {
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'avatar': forms.FileInput(attrs={'class': 'form-control'}),
             'bio': forms.Textarea(attrs={'rows': 4, 'class': 'form-control'}),
             'city': forms.TextInput(attrs={'class': 'form-control'}),
         }
@@ -283,6 +285,7 @@ class OrganizationProfileForm(forms.ModelForm):
                 'rows': 4, 
                 'class': 'form-control'
             }),
+            'logo': forms.FileInput(attrs={'class': 'form-control'}),
             'website': forms.URLInput(attrs={'class': 'form-control'}),
             'contact_email': forms.EmailInput(attrs={'class': 'form-control'}),
             'address': forms.Textarea(attrs={
@@ -301,4 +304,28 @@ class OrganizationProfileForm(forms.ModelForm):
         help_texts = {
             'contact_email': 'Будет виден волонтёрам',
             'address': 'Физический адрес организации',
+        }
+
+
+# =========================
+# ИНИЦИАТИВЫ
+# =========================
+
+class InitiativeForm(forms.ModelForm):
+    class Meta:
+        model = Initiative
+        fields = ['title', 'description', 'image', 'status']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 6
+            }),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'title': 'Название инициативы',
+            'description': 'Описание',
+            'image': 'Изображение',
+            'status': 'Статус',
         }
