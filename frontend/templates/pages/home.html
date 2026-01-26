@@ -6,21 +6,42 @@
 <!-- HERO SECTION -->
 <section class="mb-5">
     <div class="p-5 rounded-4 bg-white shadow-soft position-relative">
-        <!-- Лапка собачки -->
-        <div class="paw-print" style="position: absolute; top: 20px; right: 30px; opacity: 0.1;">
-            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M30 10C25 10 20 15 20 20C20 30 30 40 30 40C30 40 40 30 40 20C40 15 35 10 30 10Z" 
-                      fill="#0d6efd"/>
-                <circle cx="20" cy="25" r="5" fill="#0d6efd"/>
-                <circle cx="30" cy="20" r="5" fill="#0d6efd"/>
-                <circle cx="40" cy="25" r="5" fill="#0d6efd"/>
-                <circle cx="25" cy="35" r="5" fill="#0d6efd"/>
-                <circle cx="35" cy="35" r="5" fill="#0d6efd"/>
+        <!-- Большая милая мордочка кролика слева (заменили собачку) -->
+        <div class="puppy-face-left" style="position: absolute; top: 20px; left: -160px; opacity: 0.8; z-index: 1; width: 140px; height: 140px;">
+            <svg width="140" height="140" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Мордочка кролика -->
+                <circle cx="60" cy="60" r="50" fill="#FFF0F5"/>
+                <!-- Длинные уши -->
+                <ellipse cx="45" cy="10" rx="8" ry="25" fill="#FFF0F5"/>
+                <ellipse cx="75" cy="10" rx="8" ry="25" fill="#FFF0F5"/>
+                <!-- Внутренняя часть ушей -->
+                <ellipse cx="45" cy="15" rx="4" ry="20" fill="#FFB6C1"/>
+                <ellipse cx="75" cy="15" rx="4" ry="20" fill="#FFB6C1"/>
+                <!-- Глаза -->
+                <circle cx="45" cy="55" r="4" fill="black"/>
+                <circle cx="75" cy="55" r="4" fill="black"/>
+                <!-- Блеск в глазах -->
+                <circle cx="43" cy="53" r="1.5" fill="white"/>
+                <circle cx="73" cy="53" r="1.5" fill="white"/>
+                <!-- Носик -->
+                <ellipse cx="60" cy="70" rx="5" ry="3" fill="pink"/>
+                <!-- Усы -->
+                <line x1="65" y1="70" x2="80" y2="68" stroke="black" stroke-width="1"/>
+                <line x1="65" y1="73" x2="80" y2="73" stroke="black" stroke-width="1"/>
+                <line x1="65" y1="76" x2="80" y2="78" stroke="black" stroke-width="1"/>
+                <line x1="55" y1="70" x2="40" y2="68" stroke="black" stroke-width="1"/>
+                <line x1="55" y1="73" x2="40" y2="73" stroke="black" stroke-width="1"/>
+                <line x1="55" y1="76" x2="40" y2="78" stroke="black" stroke-width="1"/>
+                <!-- Улыбка -->
+                <path d="M 50 85 Q 60 90 70 85" stroke="black" stroke-width="2" fill="none"/>
+                <!-- Зубики -->
+                <rect x="58" y="88" width="2" height="3" fill="white"/>
+                <rect x="60" y="88" width="2" height="3" fill="white"/>
             </svg>
         </div>
         
         <div class="row align-items-center g-4">
-            <div class="col-12">
+            <div class="col-12 ps-md-5 ps-lg-4">
                 <h1 class="display-5 mb-3">
                     Объединяем волонтёров <br class="d-none d-md-block">
                     и волонтёрские организации
@@ -75,15 +96,23 @@
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card h-100 text-center p-4">
-                <div class="paw-icon mb-3">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 5C15 5 10 10 10 15C10 25 20 35 20 35C20 35 30 25 30 15C30 10 25 5 20 5Z" 
-                              fill="#0d6efd"/>
-                        <circle cx="10" cy="15" r="5" fill="#0d6efd"/>
-                        <circle cx="20" cy="10" r="5" fill="#0d6efd"/>
-                        <circle cx="30" cy="15" r="5" fill="#0d6efd"/>
-                        <circle cx="15" cy="25" r="5" fill="#0d6efd"/>
-                        <circle cx="25" cy="25" r="5" fill="#0d6efd"/>
+                <div class="animal-icon mb-3">
+                    <!-- Мордочка щенка для волонтёров (с ушками как у большой) -->
+                    <svg width="70" height="70" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="60" cy="60" r="50" fill="#FFB6C1"/>
+                        <!-- Ушки как у большой мордочки -->
+                        <ellipse cx="40" cy="35" rx="12" ry="22" fill="#FFB6C1" transform="rotate(-25, 40, 35)"/>
+                        <ellipse cx="80" cy="35" rx="12" ry="22" fill="#FFB6C1" transform="rotate(25, 80, 35)"/>
+                        <!-- Глаза -->
+                        <circle cx="45" cy="55" r="4" fill="black"/>
+                        <circle cx="75" cy="55" r="4" fill="black"/>
+                        <!-- Блеск в глазах -->
+                        <circle cx="43" cy="53" r="1" fill="white"/>
+                        <circle cx="73" cy="53" r="1" fill="white"/>
+                        <!-- Нос -->
+                        <ellipse cx="60" cy="70" rx="6" ry="4" fill="black"/>
+                        <!-- Рот -->
+                        <path d="M 50 80 Q 60 85 70 80" stroke="black" stroke-width="2" fill="none"/>
                     </svg>
                 </div>
                 <h4 class="mb-3">Для волонтёров</h4>
@@ -95,15 +124,30 @@
         </div>
         <div class="col-md-4">
             <div class="card h-100 text-center p-4">
-                <div class="paw-icon mb-3">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 5C15 5 10 10 10 15C10 25 20 35 20 35C20 35 30 25 30 15C30 10 25 5 20 5Z" 
-                              fill="#0d6efd"/>
-                        <circle cx="10" cy="15" r="5" fill="#0d6efd"/>
-                        <circle cx="20" cy="10" r="5" fill="#0d6efd"/>
-                        <circle cx="30" cy="15" r="5" fill="#0d6efd"/>
-                        <circle cx="15" cy="25" r="5" fill="#0d6efd"/>
-                        <circle cx="25" cy="25" r="5" fill="#0d6efd"/>
+                <div class="animal-icon mb-3">
+                    <!-- Мордочка котёнка для организаций (с оранжевыми ушками) -->
+                    <svg width="70" height="70" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="60" cy="60" r="50" fill="#FFD700"/>
+                        <!-- Треугольные ушки (оранжевые вместо желтых) -->
+                        <path d="M 35 8 L 45 45 L 25 45 Z" fill="#FFA500"/>
+                        <path d="M 85 8 L 75 45 L 95 45 Z" fill="#FFA500"/>
+                        <!-- Глаза -->
+                        <circle cx="45" cy="55" r="4" fill="black"/>
+                        <circle cx="75" cy="55" r="4" fill="black"/>
+                        <!-- Блеск в глазах -->
+                        <circle cx="43" cy="53" r="1.5" fill="white"/>
+                        <circle cx="73" cy="53" r="1.5" fill="white"/>
+                        <!-- Носик треугольный -->
+                        <path d="M 58 70 L 62 70 L 60 75 Z" fill="black"/>
+                        <!-- Усики -->
+                        <line x1="40" y1="75" x2="25" y2="70" stroke="black" stroke-width="1"/>
+                        <line x1="40" y1="80" x2="25" y2="80" stroke="black" stroke-width="1"/>
+                        <line x1="40" y1="85" x2="25" y2="90" stroke="black" stroke-width="1"/>
+                        <line x1="80" y1="75" x2="95" y2="70" stroke="black" stroke-width="1"/>
+                        <line x1="80" y1="80" x2="95" y2="80" stroke="black" stroke-width="1"/>
+                        <line x1="80" y1="85" x2="95" y2="90" stroke="black" stroke-width="1"/>
+                        <!-- Улыбка -->
+                        <path d="M 50 85 Q 60 90 70 85" stroke="black" stroke-width="2" fill="none"/>
                     </svg>
                 </div>
                 <h4 class="mb-3">Для организаций</h4>
@@ -115,15 +159,37 @@
         </div>
         <div class="col-md-4">
             <div class="card h-100 text-center p-4">
-                <div class="paw-icon mb-3">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 5C15 5 10 10 10 15C10 25 20 35 20 35C20 35 30 25 30 15C30 10 25 5 20 5Z" 
-                              fill="#0d6efd"/>
-                        <circle cx="10" cy="15" r="5" fill="#0d6efd"/>
-                        <circle cx="20" cy="10" r="5" fill="#0d6efd"/>
-                        <circle cx="30" cy="15" r="5" fill="#0d6efd"/>
-                        <circle cx="15" cy="25" r="5" fill="#0d6efd"/>
-                        <circle cx="25" cy="25" r="5" fill="#0d6efd"/>
+                <div class="animal-icon mb-3">
+                    <!-- Мордочка мышки (с поднятыми ушками в 2 раза выше) -->
+                    <svg width="70" height="70" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Голова мышки -->
+                        <circle cx="60" cy="60" r="50" fill="#D3D3D3"/>
+                        <!-- Ушки (ПОДНЯТЫ В 2 РАЗА ВЫШЕ) -->
+                        <circle cx="40" cy="20" r="15" fill="#D3D3D3"/>
+                        <circle cx="80" cy="20" r="15" fill="#D3D3D3"/>
+                        <!-- Внутренние ушки (ПОДНЯТЫ В 2 РАЗА ВЫШЕ) -->
+                        <circle cx="40" cy="20" r="8" fill="#C0C0C0"/>
+                        <circle cx="80" cy="20" r="8" fill="#C0C0C0"/>
+                        <!-- Глаза -->
+                        <circle cx="45" cy="55" r="4" fill="black"/>
+                        <circle cx="75" cy="55" r="4" fill="black"/>
+                        <!-- Блеск в глазах -->
+                        <circle cx="43" cy="53" r="1.5" fill="white"/>
+                        <circle cx="73" cy="53" r="1.5" fill="white"/>
+                        <!-- Носик -->
+                        <circle cx="60" cy="70" r="5" fill="pink"/>
+                        <!-- Усики -->
+                        <line x1="65" y1="70" x2="80" y2="68" stroke="black" stroke-width="1"/>
+                        <line x1="65" y1="73" x2="80" y2="73" stroke="black" stroke-width="1"/>
+                        <line x1="65" y1="76" x2="80" y2="78" stroke="black" stroke-width="1"/>
+                        <line x1="55" y1="70" x2="40" y2="68" stroke="black" stroke-width="1"/>
+                        <line x1="55" y1="73" x2="40" y2="73" stroke="black" stroke-width="1"/>
+                        <line x1="55" y1="76" x2="40" y2="78" stroke="black" stroke-width="1"/>
+                        <!-- Улыбка -->
+                        <path d="M 50 85 Q 60 90 70 85" stroke="black" stroke-width="2" fill="none"/>
+                        <!-- Зубики -->
+                        <rect x="58" y="88" width="2" height="3" fill="white"/>
+                        <rect x="60" y="88" width="2" height="3" fill="white"/>
                     </svg>
                 </div>
                 <h4 class="mb-3">Прозрачность</h4>
@@ -135,19 +201,6 @@
         </div>
     </div>
 </section>
-
-<!-- Плавающая лапка в углу -->
-<div class="floating-paw">
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 5C15 5 10 10 10 15C10 25 20 35 20 35C20 35 30 25 30 15C30 10 25 5 20 5Z" 
-              fill="#0d6efd" fill-opacity="0.2"/>
-        <circle cx="10" cy="15" r="5" fill="#0d6efd" fill-opacity="0.2"/>
-        <circle cx="20" cy="10" r="5" fill="#0d6efd" fill-opacity="0.2"/>
-        <circle cx="30" cy="15" r="5" fill="#0d6efd" fill-opacity="0.2"/>
-        <circle cx="15" cy="25" r="5" fill="#0d6efd" fill-opacity="0.2"/>
-        <circle cx="25" cy="25" r="5" fill="#0d6efd" fill-opacity="0.2"/>
-    </svg>
-</div>
 
 <!-- CTA: ТОЛЬКО ДЛЯ НЕАВТОРИЗОВАННЫХ -->
 {% if not user.is_authenticated %}
@@ -170,50 +223,97 @@
 {% endif %}
 
 <style>
-.paw-print {
-    animation: float 6s ease-in-out infinite;
+.puppy-face-left {
+    animation: float 6s ease-in-out infinite, rotate 8s ease-in-out infinite;
 }
 
-.paw-icon {
-    animation: pulse 2s ease-in-out infinite;
-}
-
-.floating-paw {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    animation: float 4s ease-in-out infinite;
-    opacity: 0.7;
-    cursor: pointer;
-}
-
-.floating-paw:hover {
-    opacity: 1;
-    transform: scale(1.1);
+.animal-icon {
+    animation: pulse 3s ease-in-out infinite;
 }
 
 @keyframes float {
     0% {
-        transform: translateY(0px);
+        transform: translateY(0px) rotate(0deg);
     }
     50% {
-        transform: translateY(-10px);
+        transform: translateY(-15px) rotate(5deg);
     }
     100% {
-        transform: translateY(0px);
+        transform: translateY(0px) rotate(0deg);
+    }
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(5deg);
+    }
+    75% {
+        transform: rotate(-5deg);
+    }
+    100% {
+        transform: rotate(0deg);
     }
 }
 
 @keyframes pulse {
     0% {
         transform: scale(1);
+        opacity: 1;
     }
     50% {
-        transform: scale(1.05);
+        transform: scale(1.08);
+        opacity: 0.9;
     }
     100% {
         transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Для больших экранов */
+@media (min-width: 992px) {
+    .puppy-face-left {
+        left: -200px !important;
+        width: 180px !important;
+        height: 180px !important;
+    }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .puppy-face-left {
+        width: 100px !important;
+        height: 100px !important;
+        top: 10px !important;
+        left: -100px !important;
+        opacity: 0.7 !important;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .puppy-face-left {
+        width: 80px !important;
+        height: 80px !important;
+        top: 5px !important;
+        left: -60px !important;
+        opacity: 0.6 !important;
+    }
+    
+    .col-12.ps-md-5 {
+        padding-left: 15px !important;
     }
 }
 </style>
