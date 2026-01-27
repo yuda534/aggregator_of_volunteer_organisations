@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 export default function Home() {
-  return <h1>Home</h1>;
+  return (<div><section className="py-20 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl mb-12"><div className="text-center"><h1 className="text-4xl md:text-5xl font-bold mb-6">Объединяем волонтёров и организации</h1><p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">Go2Help — платформа для волонтёров и волонтёрских организаций</p><div className="flex flex-wrap justify-center gap-4"><Button asChild size="lg"><Link to="/events">Найти мероприятие</Link></Button><Button asChild variant="outline" size="lg"><Link to="/register">Присоединиться</Link></Button></div></div></section><section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"><Card><CardHeader><CardTitle>Для волонтёров</CardTitle></CardHeader><CardContent><p>Находите мероприятия, подавайте заявки, получайте отзывы</p></CardContent></Card><Card><CardHeader><CardTitle>Для организаций</CardTitle></CardHeader><CardContent><p>Создавайте мероприятия, находите волонтёров, оставляйте отзывы</p></CardContent></Card><Card><CardHeader><CardTitle>Прозрачность</CardTitle></CardHeader><CardContent><p>Рейтинги, отзывы и история участия для доверия</p></CardContent></Card></section></div>);
 }

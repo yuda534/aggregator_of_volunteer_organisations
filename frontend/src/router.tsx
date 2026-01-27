@@ -1,16 +1,11 @@
-import { createBrowserRouter } from "react-router-dom";
-import Home from "@/pages/Home";
-import Events from "@/pages/Events";
-import EventDetail from "@/pages/EventDetail";
-import Organizations from "@/pages/Organizations";
-import Volunteers from "@/pages/Volunteers";
-import Map from "@/pages/Map";
-
-export const router = createBrowserRouter([
-  { path: "/", element: <Home /> },
-  { path: "/events", element: <Events /> },
-  { path: "/events/:id", element: <EventDetail /> },
-  { path: "/organizations", element: <Organizations /> },
-  { path: "/volunteers", element: <Volunteers /> },
-  { path: "/map", element: <Map /> },
-]);
+import { createBrowserRouter } from 'react-router-dom';
+import App from './App';
+import Home from '@/pages/Home';
+import Events from '@/pages/Events';
+import EventDetail from '@/pages/EventDetail';
+import Organizations from '@/pages/Organizations';
+import Volunteers from '@/pages/Volunteers';
+import Map from '@/pages/Map';
+import Login from '@/pages/auth/Login';
+import Register from '@/pages/auth/Register';
+export const router = createBrowserRouter([{path: '/',element: <App />,children: [{ path: '/', element: <Home /> },{ path: '/events', element: <Events /> },{ path: '/events/:id', element: <EventDetail /> },{ path: '/organizations', element: <Organizations /> },{ path: '/volunteers', element: <Volunteers /> },{ path: '/map', element: <Map /> },{ path: '/login', element: <Login /> },{ path: '/register', element: <Register /> },],},]);
