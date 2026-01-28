@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, getCurrentUser, login as apiLogin, logout as apiLogout } from '@/api/auth';
+import { User, getCurrentUser, login as apiLogin, logout as apiLogout, register as apiRegister, TokenResponse } from '@/api/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (data: { username: string; password: string }) => Promise<void>;
+  register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -20,31 +21,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function checkAuth() {
-    try {
-      const user = await getCurrentUser();
-      setUser(user);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      setUser(null);
-    } finally {
-      setLoading(false);
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      try {
+        const user = await getCurrentUser();
+        setUser(user);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        setUser(null);
+      }
     }
+    setLoading(false);
   }
 
   async function login(data: { username: string; password: string }) {
-    const response = await apiLogin(data);
-    
-    // В реальном приложении здесь будет JWT токен
-    // localStorage.setItem('access_token', response.access);
-    // localStorage.setItem('refresh_token', response.refresh);
-    
-    setUser(response.user);
+    const { user } = await apiLogin(data);
+    setUser(user);
+  }
+
+  async function register(data: any) {
+    const { user } = await apiRegister(data);
+    setUser(user);
   }
 
   async function logout() {
     await apiLogout();
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
     setUser(null);
   }
 
@@ -52,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     loading,
     login,
+    register,
     logout,
     isAuthenticated: !!user,
   };
