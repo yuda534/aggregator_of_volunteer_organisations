@@ -1,25 +1,53 @@
-from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, VolunteerProfileViewSet, OrganizationViewSet, EventViewSet, VolunteerApplicationViewSet
+from django.urls import path
+from . import views
 
-router = DefaultRouter()
+urlpatterns = [
+    # Home
+    path('', views.home_view, name='home'),
 
-router.register('users', UserViewSet)  # /api/users/
-router.register('volunteers', VolunteerProfileViewSet)  # /api/volunteers/
-router.register('organizations', OrganizationViewSet)  # /api/organizations/
-router.register('events', EventViewSet)  # /api/events/
-router.register('applications', VolunteerApplicationViewSet)  # /api/applications/
+    # Profile
+    path('profile/<int:user_id>/', views.profile_view, name='profile'),
 
-urlpatterns = router.urls
+    # Events
+    path('events/', views.event_list_view, name='event_list'),
+    path('events/<int:pk>/', views.event_detail_view, name='event_detail'),
+    path('events/<int:pk>/cancel/', views.cancel_event_view, name='cancel_event'),
 
-#--------------------------------------------#
+    # Organizations
+    path('organizations/', views.organization_list_view, name='organization_list'),
+    path('organizations/<int:pk>/', views.organization_detail_view, name='organization_detail'),
 
-from rest_framework import serializers
-from .models import User
-class UserSerializer(serializers. ModelSerializer):
-class Meta:
-model = User
-fields = ['id', 'username', 'email', 'password']
-extra_kwargs = {'password': {'write_only': True}}
-def create(self, validated_data):
-user = User.objects.create_user(**validated_data)
-return user
+    # Volunteers
+    path('volunteers/', views.volunteer_list_view, name='volunteer_list'),
+    path('volunteers/<int:pk>/', views.volunteer_detail_view, name='volunteer_detail'),
+
+    # Initiatives
+    path('initiatives/', views.initiative_list_view, name='initiative_list'),
+    path('initiatives/<int:pk>/', views.initiative_detail_view, name='initiative_detail'),
+    path('initiatives/create/', views.create_initiative_view, name='create_initiative'),
+    path('initiatives/<int:pk>/edit/', views.edit_initiative_view, name='edit_initiative'),
+    path('initiatives/<int:pk>/delete/', views.delete_initiative_view, name='delete_initiative'),
+
+    # Map
+    path('map/', views.map_view, name='map'),
+
+    # Auth
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_view, name='register'),
+
+    # Applications
+    path('my-applications/', views.my_applications_view, name='my_applications'),
+    path('organization/applications/', views.organization_applications_view, name='organization_applications'),
+    path('applications/<int:pk>/<str:status>/', views.update_application_status_view, name='update_application_status'),
+    path('applications/<int:pk>/no-show/', views.mark_no_show_view, name='mark_no_show'),
+
+    # Reviews
+    path('reviews/volunteer/<int:event_id>/<int:volunteer_id>/', views.leave_volunteer_review_view, name='leave_volunteer_review'),
+    path('reviews/organization/<int:event_id>/<int:organization_id>/', views.leave_organization_review_view, name='leave_organization_review'),
+
+    # Create Event
+    path('create-event/', views.create_event_view, name='create_event'),
+
+    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
+]

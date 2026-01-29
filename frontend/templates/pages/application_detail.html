@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Заявка #{{ application.id }} — Go2Help{% endblock %}
+
+{% block content %}
+
+{% include 'includes/back_button.html' %}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Заявка на участие</h2>
+        <a href="{% url 'organization_applications' %}" class="btn btn-outline-secondary">
+            К списку заявок
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Информация о мероприятии</h5>
+
+                    <p class="mb-1">
+                        <strong>Название:</strong>
+                        <a href="{% url 'event_detail' application.event.id %}">
+                            {{ application.event.title }}
+                        </a>
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Организация:</strong>
+                        <a href="{% url 'organization_detail' application.event.organization.id %}">
+                            {{ application.event.organization.name }}
+                        </a>
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>Дата проведения:</strong>
+                        {{ application.event.date|date:"d.m.Y" }}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>Описание:</strong><br>
+                        {{ application.event.description }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Сообщение от волонтёра</h5>
+
+                    {% if application.message %}
+                        <p class="mb-0">{{ application.message }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">Сообщение не указано</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Волонтёр</h5>
+
+                    <p class="mb-1">
+                        <strong>Пользователь:</strong>
+                        <a href="{% url 'volunteer_detail' application.volunteer.id %}">
+                            {{ application.volunteer.user.username }}
+                        </a>
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>Рейтинг:</strong>
+                        {{ application.volunteer.rating|default:"—" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Статус заявки</h5>
+
+                    {% if application.status == "pending" %}
+                        <span class="badge bg-warning text-dark mb-3">
+                            На рассмотрении
+                        </span>
+
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{% url 'update_application_status' application.id 'approved' %}"
+                               class="btn btn-success">
+                                Одобрить
+                            </a>
+                            <a href="{% url 'update_application_status' application.id 'rejected' %}"
+                               class="btn btn-danger">
+                                Отклонить
+                            </a>
+                        </div>
+
+                    {% elif application.status == "approved" %}
+                        <span class="badge bg-success">Одобрена</span>
+
+                    {% elif application.status == "rejected" %}
+                        <span class="badge bg-danger">Отклонена</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

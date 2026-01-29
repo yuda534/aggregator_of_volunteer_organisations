@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Мои заявки — Go2Help{% endblock %}
+
+{% block content %}
+
+{% include 'includes/back_button.html' %}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Мои заявки</h2>
+        <a href="{% url 'event_list' %}" class="btn btn-outline-primary">
+            Найти мероприятия
+        </a>
+    </div>
+
+    <!-- ФИЛЬТРЫ -->
+    <div class="card p-3 mb-4">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label">Статус заявки</label>
+                <select name="status" class="form-select">
+                    <option value="">Все статусы</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>
+                        На рассмотрении
+                    </option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>
+                        Одобренные
+                    </option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>
+                        Отклонённые
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Поиск по мероприятию</label>
+                <input
+                    type="text"
+                    name="event"
+                    class="form-control"
+                    placeholder="Название мероприятия"
+                    value="{{ event_search }}"
+                >
+            </div>
+
+            <div class="col-md-4 d-grid gap-2">
+                <button type="submit" class="btn btn-outline-primary">
+                    Применить
+                </button>
+                {% if status_filter or event_search %}
+                <a href="{% url 'my_applications' %}" class="btn btn-outline-secondary">
+                    Сбросить
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    {% if applications %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Мероприятие</th>
+                        <th>Организация</th>
+                        <th>Дата подачи</th>
+                        <th>Статус</th>
+                        <th class="text-end">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'event_detail' application.event.id %}"
+                                   class="fw-semibold text-decoration-none">
+                                    {{ application.event.title }}
+                                </a>
+                            </td>
+
+                            <td>
+                                <a href="{% url 'organization_detail' application.event.organization.id %}"
+                                   class="text-decoration-none">
+                                    {{ application.event.organization.name }}
+                                </a>
+                            </td>
+
+                            <td>
+                                {{ application.applied_at|date:"d.m.Y H:i" }}
+                            </td>
+
+                            <td>
+                                {% if application.status == "pending" %}
+                                    <span class="badge bg-warning text-dark">На рассмотрении</span>
+                                {% elif application.status == "approved" %}
+                                    <span class="badge bg-success">Одобрена</span>
+                                {% elif application.status == "rejected" %}
+                                    <span class="badge bg-danger">Отклонена</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ application.status }}</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">
+                                <a href="{% url 'event_detail' application.event.id %}"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Открыть мероприятие
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            {% if status_filter or event_search %}
+                По вашему запросу заявок не найдено.
+            {% else %}
+                У вас пока нет заявок. Перейдите к списку мероприятий и подайте первую заявку.
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

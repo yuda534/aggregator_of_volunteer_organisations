@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ volunteer.user.username }} — Волонтёр Go2Help{% endblock %}
+
+{% block content %}
+
+{% include 'includes/back_button.html' %}
+
+<!-- HEADER -->
+<section class="mb-4">
+    <div class="card p-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <h1 class="mb-1">{{ volunteer.user.username }}</h1>
+
+                <div class="text-muted mb-2">
+                    {% if volunteer.user.city %}
+                        📍 {{ volunteer.user.city }}
+                    {% endif %}
+                </div>
+
+                <div class="fw-semibold">
+                    ⭐ Рейтинг: {{ volunteer.rating|default:"0.0" }}
+                </div>
+            </div>
+
+            {% if user.is_authenticated and user.user_type == 'organization' %}
+                <div>
+                    <span class="badge bg-primary">
+                        Волонтёр
+                    </span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- PROFILE INFO -->
+<section class="mb-4">
+    <div class="card p-4">
+        <h4 class="mb-3">Информация</h4>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="fw-semibold mb-1">Навыки</div>
+                {% if volunteer.skills %}
+                    <p class="mb-0">
+                        {{ volunteer.skills }}
+                    </p>
+                {% else %}
+                    <p class="text-muted mb-0">
+                        Не указаны
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <div class="fw-semibold mb-1">Опыт</div>
+                {% if volunteer.experience %}
+                    <p class="mb-0">
+                        {{ volunteer.experience }}
+                    </p>
+                {% else %}
+                    <p class="text-muted mb-0">
+                        Не указан
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- EVENTS -->
+<section>
+    <h3 class="mb-3">Участие в мероприятиях</h3>
+
+    {% if volunteer.volunteerapplication_set.all %}
+        <div class="row g-4">
+            {% for application in volunteer.volunteerapplication_set.all %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-2">
+                                {{ application.event.title }}
+                            </h5>
+
+                            <div class="small text-muted mb-2">
+                                📅 {{ application.event.start_date|date:"d.m.Y" }} –
+                                {{ application.event.end_date|date:"d.m.Y" }}
+                            </div>
+
+                            <div class="mb-3">
+                                <span class="badge
+                                    {% if application.status == 'approved' %}bg-success
+                                    {% elif application.status == 'rejected' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}
+                                ">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </div>
+
+                            <div class="mt-auto">
+                                <a
+                                    href="{% url 'event_detail' application.event.id %}"
+                                    class="btn btn-outline-primary w-100"
+                                >
+                                    Открыть мероприятие
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card p-4 text-center text-muted">
+            Волонтёр пока не участвовал в мероприятиях
+        </div>
+    {% endif %}
+</section>
+
+{% endblock %}

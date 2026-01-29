@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Создание инициативы — Go2Help{% endblock %}
+
+{% block content %}
+
+{% include 'includes/back_button.html' %}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h2 class="mb-0">Создание новой инициативы</h2>
+                    <p class="text-muted mb-0">Предложите свою идею волонтёрского проекта</p>
+                </div>
+                
+                <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Название -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Название инициативы</label>
+                            {{ form.title }}
+                            <div class="form-text">Краткое и понятное название вашей идеи</div>
+                            {% if form.title.errors %}
+                                <div class="text-danger small">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Описание</label>
+                            {{ form.description }}
+                            <div class="form-text">Подробно опишите вашу идею: цели, задачи, как можно помочь</div>
+                            {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Изображение -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Изображение</label>
+                            {{ form.image }}
+                            <div class="form-text">Загрузите изображение, которое иллюстрирует вашу инициативу (опционально)</div>
+                            {% if form.image.errors %}
+                                <div class="text-danger small">{{ form.image.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Статус -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Статус</label>
+                            {{ form.status }}
+                            <div class="form-text">
+                                <ul class="small text-muted mt-2">
+                                    <li><strong>Черновик</strong> — только вы видите</li>
+                                    <li><strong>Опубликовано</strong> — видят все пользователи</li>
+                                    <li><strong>В процессе</strong> — инициатива реализуется</li>
+                                    <li><strong>Завершено</strong> — инициатива реализована</li>
+                                    <li><strong>Отменено</strong> — инициатива отменена</li>
+                                </ul>
+                            </div>
+                            {% if form.status.errors %}
+                                <div class="text-danger small">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'initiative_list' %}" class="btn btn-secondary">
+                                Отмена
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Создать инициативу
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+</style>
+
+{% endblock %}
