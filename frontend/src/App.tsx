@@ -1,39 +1,69 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APITester } from "./APITester";
-import "./index.css";
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import logo from "./logo.svg";
-import reactLogo from "./react.svg";
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AppShell } from '@/components/layout/AppShell';
+import { RequireAuth } from '@/components/common/RequireAuth';
+import { Home } from '@/pages/Home';
+import { Events } from '@/pages/Events';
+import { EventDetail } from '@/pages/EventDetail';
+import { Organizations } from '@/pages/Organizations';
+import { OrganizationDetail } from '@/pages/OrganizationDetail';
+import { Volunteers } from '@/pages/Volunteers';
+import { VolunteerDetail } from '@/pages/VolunteerDetail';
+import { Initiatives } from '@/pages/Initiatives';
+import { Map } from '@/pages/Map';
+import { Profile } from '@/pages/Profile';
+import { Applications } from '@/pages/Applications';
+import { CreateEvent } from '@/pages/CreateEvent';
+import { Login } from '@/pages/Login';
+import { Register } from '@/pages/Register';
+import { NotFound } from '@/pages/NotFound';
 
 export function App() {
   return (
-    <div className="container mx-auto p-8 text-center relative z-10">
-      <div className="flex justify-center items-center gap-8 mb-8">
-        <img
-          src={logo}
-          alt="Bun Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#646cffaa] scale-120"
-        />
-        <img
-          src={reactLogo}
-          alt="React Logo"
-          className="h-36 p-6 transition-all duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa] [animation:spin_20s_linear_infinite]"
-        />
-      </div>
-      <Card>
-        <CardHeader className="gap-4">
-          <CardTitle className="text-3xl font-bold">Bun + React</CardTitle>
-          <CardDescription>
-            Edit <code className="rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono">src/App.tsx</code> and save to
-            test HMR
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <APITester />
-        </CardContent>
-      </Card>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route index element={<Home />} />
+            <Route path="events" element={<Events />} />
+            <Route path="events/:id" element={<EventDetail />} />
+            <Route path="organizations" element={<Organizations />} />
+            <Route path="organizations/:id" element={<OrganizationDetail />} />
+            <Route path="volunteers" element={<Volunteers />} />
+            <Route path="volunteers/:id" element={<VolunteerDetail />} />
+            <Route path="initiatives" element={<Initiatives />} />
+            <Route path="map" element={<Map />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route
+              path="profile"
+              element={
+                <RequireAuth>
+                  <Profile />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="applications"
+              element={
+                <RequireAuth>
+                  <Applications />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="create-event"
+              element={
+                <RequireAuth>
+                  <CreateEvent />
+                </RequireAuth>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
-
-export default App;
