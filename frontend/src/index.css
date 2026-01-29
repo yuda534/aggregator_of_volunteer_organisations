@@ -1,1 +1,46 @@
-@import "../styles/globals.css";
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=Unbounded:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 20 28% 97%;
+    --foreground: 222 20% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 20% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 20% 12%;
+    --primary: 14 80% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 18% 92%;
+    --secondary-foreground: 222 20% 12%;
+    --muted: 210 20% 92%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 37 92% 82%;
+    --accent-foreground: 222 20% 12%;
+    --destructive: 0 75% 54%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 18% 86%;
+    --input: 210 18% 86%;
+    --ring: 14 80% 44%;
+    --radius: 1.1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.hero-grid {
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(255, 198, 121, 0.35), transparent 55%),
+    radial-gradient(circle at 80% 10%, rgba(255, 122, 89, 0.25), transparent 50%),
+    radial-gradient(circle at 60% 80%, rgba(116, 157, 255, 0.18), transparent 60%);
+}

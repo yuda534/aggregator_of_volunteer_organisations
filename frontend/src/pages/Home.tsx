@@ -1,211 +1,137 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, CalendarDays, Sparkles } from 'lucide-react';
+
+import { getEvents } from '@/api/events';
+import { getInitiatives } from '@/api/initiatives';
+import type { Event, Initiative } from '@/api/types';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getEvents } from '@/api/events';
-import type { Event } from '@/api/events';
-import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from '@/components/common/SectionHeader';
+import { StatCard } from '@/components/common/StatCard';
 
-export default function Home() {
-  const { user, isAuthenticated } = useAuth();
+export function Home() {
+  const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initiatives, setInitiatives] = useState<Initiative[]>([]);
 
   useEffect(() => {
-    fetchEvents();
+    getEvents({ status: 'active' })
+      .then((data) => setEvents(data.slice(0, 3)))
+      .catch(() => setEvents([]));
   }, []);
 
-  async function fetchEvents() {
-    try {
-      setLoading(true);
-      const data = await getEvents({ status: 'active' });
-      setEvents(data.slice(0, 3)); // Только 3 последних
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    getInitiatives()
+      .then((data) => setInitiatives(data.slice(0, 3)))
+      .catch(() => setInitiatives([]));
+  }, []);
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="py-12 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Объединяем волонтёров и волонтёрские организации
-            </h1>
-            <p className="text-lg text-muted-foreground mb-8">
-              Go2Help — это платформа, где волонтёры находят мероприятия,
-              а организации — надёжных помощников.
-            </p>
-            
-            <div className="flex flex-wrap justify-center gap-4">
-              {!isAuthenticated ? (
-                <>
-                  <Button asChild size="lg">
-                    <Link to="/events">Найти мероприятие</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg">
-                    <Link to="/organizations">Организации</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg">
-                    <Link to="/volunteers">Волонтёры</Link>
-                  </Button>
-                </>
-              ) : user?.user_type === 'volunteer' ? (
-                <>
-                  <Button asChild size="lg">
-                    <Link to="/events">Найти мероприятие</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg">
-                    <Link to="/initiatives">Инициативы</Link>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button asChild size="lg">
-                    <Link to="/events/create">Создать мероприятие</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg">
-                    <Link to="/volunteers">Волонтёры</Link>
-                  </Button>
-                </>
-              )}
+    <div>
+      <section className="hero-grid">
+        <div className="container py-16 md:py-24">
+          <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-6">
+              <Badge variant="secondary" className="rounded-full px-4 py-1 text-sm">
+                Соединяем волонтёров и организации
+              </Badge>
+              <h1 className="text-4xl font-display font-semibold leading-tight md:text-5xl">
+                Делайте добрые дела вместе — быстро находите события и команды рядом.
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                Платформа помогает организациям собирать команды, а волонтёрам — находить
+                значимые мероприятия и инициативы в своём городе.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Button asChild size="lg">
+                  <Link to="/events">
+                    Смотреть события <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild size="lg">
+                  <Link to="/organizations">Найти организацию</Link>
+                </Button>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                <StatCard label="События сегодня" value="20+" />
+                <StatCard label="Организации" value="80+" />
+                <StatCard label="Волонтёры" value="1200+" />
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-12 px-4 md:px-6 bg-muted/50">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8">Возможности платформы</h2>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card>
+            <Card className="border-none bg-background/80 shadow-lg">
               <CardHeader>
-                <CardTitle>Для волонтёров</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-primary" /> Быстрый старт
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Просматривайте мероприятия, подавайте заявки,
-                  создавайте инициативы, получайте отзывы.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Для организаций</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Создавайте мероприятия, отбирайте волонтёров,
-                  оставляйте отзывы по итогам участия.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Прозрачность</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Рейтинги, отзывы и история участия —
-                  всё для доверия между сторонами.
-                </p>
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <p>Создайте профиль волонтёра или организации, чтобы управлять заявками.</p>
+                <p>Публикуйте мероприятия, получайте отклики и оставляйте отзывы.</p>
+                <p>Используйте карту, чтобы видеть события рядом с вами.</p>
+                {user?.user_type === 'organization' && (
+                  <Button asChild className="w-full">
+                    <Link to="/create-event">Создать мероприятие</Link>
+                  </Button>
+                )}
+                {user?.user_type === 'volunteer' && (
+                  <Button asChild className="w-full" variant="secondary">
+                    <Link to="/initiatives">Добавить инициативу</Link>
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Events Preview */}
-      <section className="py-12 px-4 md:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-3xl font-bold">Последние мероприятия</h2>
-            <Button asChild variant="outline">
-              <Link to="/events">Все мероприятия</Link>
-            </Button>
-          </div>
-          
-          {loading ? (
-            <div className="text-center py-8">Загрузка...</div>
-          ) : events.length > 0 ? (
-            <div className="grid md:grid-cols-3 gap-6">
-              {events.map((event) => (
-                <Card key={event.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle>{event.title}</CardTitle>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        event.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {event.status === 'active' ? 'Активно' : 'Завершено'}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {event.description}
-                    </p>
-                    <div className="text-sm mb-4">
-                      <p className="mb-1">
-                        <strong>Организация:</strong> {event.organization.name}
-                      </p>
-                      <p className="mb-1">
-                        <strong>Дата:</strong> {new Date(event.start_date).toLocaleDateString()}
-                      </p>
-                      <p>
-                        <strong>Место:</strong> {event.location}
-                      </p>
-                    </div>
-                    <Button asChild className="w-full">
-                      <Link to={`/events/${event.id}`}>Подробнее</Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              Мероприятий пока нет
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* CTA для неавторизованных */}
-      {!isAuthenticated && (
-        <section className="py-12 px-4 md:px-6">
-          <div className="max-w-4xl mx-auto">
-            <Card className="bg-primary text-primary-foreground">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Готовы начать?</CardTitle>
+      <section className="container py-12 md:py-16 space-y-8">
+        <SectionHeader title="Актуальные мероприятия" subtitle="Найдите ближайшее событие и присоединяйтесь." />
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {events.map((event) => (
+            <Card key={event.id} className="flex flex-col">
+              <CardHeader>
+                <CardTitle>{event.title}</CardTitle>
+                <Badge variant="muted">{event.status_label || event.status}</Badge>
               </CardHeader>
-              <CardContent className="text-center">
-                <p className="mb-6 opacity-90">
-                  Зарегистрируйтесь и станьте частью волонтёрского сообщества
-                </p>
-                <div className="flex justify-center gap-4">
-                  <Button asChild variant="secondary" size="lg">
-                    <Link to="/register">Регистрация</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="bg-transparent" size="lg">
-                    <Link to="/login">Войти</Link>
-                  </Button>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <p>{event.description.slice(0, 120)}...</p>
+                <div className="flex items-center gap-2 text-xs">
+                  <CalendarDays className="h-4 w-4" />
+                  {new Date(event.start_date).toLocaleDateString()}
                 </div>
+                <Button asChild className="mt-2 w-full">
+                  <Link to={`/events/${event.id}`}>Подробнее</Link>
+                </Button>
               </CardContent>
             </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-muted/40">
+        <div className="container py-12 md:py-16 space-y-8">
+          <SectionHeader
+            title="Инициативы волонтёров"
+            subtitle="Личные проекты, которые можно поддержать или масштабировать."
+          />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {initiatives.map((initiative) => (
+              <Card key={initiative.id}>
+                <CardHeader>
+                  <CardTitle>{initiative.title}</CardTitle>
+                  <Badge variant="secondary">{initiative.status}</Badge>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                  {initiative.description.slice(0, 140)}...
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
     </div>
   );
 }

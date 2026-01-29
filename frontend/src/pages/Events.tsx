@@ -1,12 +1,78 @@
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getEvents } from '@/api/events';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-export default function Events() {
-  const [events, setEvents] = useState([]);const [loading, setLoading] = useState(true);const [filters, setFilters] = useState({ search: '', status: '' });
-  useEffect(() => {fetchEvents();}, []);
-  const fetchEvents = async () => {try {const data = await getEvents(filters);setEvents(data);} catch (error) {console.error('Ошибка загрузки мероприятий:', error);} finally {setLoading(false);}};
-  return (<div><h1 className="text-3xl font-bold mb-6">Мероприятия</h1><Card className="mb-6"><CardContent className="pt-6"><div className="flex flex-col md:flex-row gap-4"><Input placeholder="Поиск мероприятий..." value={filters.search} onChange={(e) => setFilters({...filters, search: e.target.value})}/><select className="p-2 border rounded-md" value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})}><option value="">Все статусы</option><option value="active">Активные</option><option value="completed">Завершённые</option></select><Button onClick={fetchEvents}>Найти</Button></div></CardContent></Card>{loading ? (<div>Загрузка...</div>) : events.length > 0 ? (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{events.map((event: any) => (<Card key={event.id}><CardHeader><CardTitle>{event.title}</CardTitle></CardHeader><CardContent><p className="text-gray-600 mb-4 line-clamp-2">{event.description}</p><div className="space-y-2 mb-4"><div className="text-sm">📍 {event.location}</div><div className="text-sm">👥 {event.approved_count}/{event.required_volunteers}</div></div><Button asChild className="w-full"><Link to={`/events/${event.id}`}>Подробнее</Link></Button></CardContent></Card>))}</div>) : (<div className="text-center py-10">Мероприятий не найдено</div>)}</div>);
+import { CalendarDays, Search } from 'lucide-react';
+
+import { getEvents } from '@/api/events';
+import type { Event } from '@/api/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { SectionHeader } from '@/components/common/SectionHeader';
+
+export function Events() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [search, setSearch] = useState('');
+  const [status, setStatus] = useState<string>('all');
+
+  useEffect(() => {
+    const filters: { search?: string; status?: string } = {};
+    if (search) filters.search = search;
+    if (status !== 'all') filters.status = status;
+    getEvents(filters)
+      .then(setEvents)
+      .catch(() => setEvents([]));
+  }, [search, status]);
+
+  return (
+    <div className="container py-12 space-y-8">
+      <SectionHeader title="Мероприятия" subtitle="Фильтруйте события и подавайте заявки." />
+
+      <div className="grid gap-4 md:grid-cols-[1fr_200px]">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Поиск по названию, описанию, локации"
+            className="pl-11"
+          />
+        </div>
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger>
+            <SelectValue placeholder="Статус" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все</SelectItem>
+            <SelectItem value="active">Активные</SelectItem>
+            <SelectItem value="draft">Черновики</SelectItem>
+            <SelectItem value="completed">Завершённые</SelectItem>
+            <SelectItem value="cancelled">Отменённые</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {events.map((event) => (
+          <Card key={event.id} className="flex flex-col">
+            <CardHeader>
+              <CardTitle>{event.title}</CardTitle>
+              <Badge variant="muted">{event.status_label || event.status}</Badge>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>{event.description.slice(0, 140)}...</p>
+              <div className="flex items-center gap-2 text-xs">
+                <CalendarDays className="h-4 w-4" />
+                {new Date(event.start_date).toLocaleString()}
+              </div>
+              <Button asChild className="w-full">
+                <Link to={`/events/${event.id}`}>Открыть событие</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
 }
