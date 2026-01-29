@@ -8,9 +8,6 @@ from swagger.swagger import schema_view
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # HTML страницы
-    path('', include('api.urls')),
-
     # API
     path('api/v1/', include('api.api_urls')),
     

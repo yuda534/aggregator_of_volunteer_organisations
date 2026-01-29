@@ -12,7 +12,6 @@ from datetime import timedelta
 # ======================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = BASE_DIR.parent  # корень проекта (где frontend/)
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -72,16 +71,10 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# ======================================================
-# TEMPLATES (frontend/templates)
-# ======================================================
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            PROJECT_ROOT / 'frontend' / 'templates'
-        ],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -89,23 +82,14 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'api.context_processors.yandex_maps_api',
             ],
         },
     },
 ]
 
 
-# ======================================================
-# STATIC FILES (frontend/static)
-# ======================================================
-
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-STATICFILES_DIRS = [
-    PROJECT_ROOT / 'frontend' / 'static',
-]
 
 
 # ======================================================
