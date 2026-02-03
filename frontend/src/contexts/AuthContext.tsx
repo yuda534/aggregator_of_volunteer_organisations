@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-
 import { getMe, login as loginRequest, register as registerRequest, updateMe } from '@/api/auth';
 import type { MeResponse } from '@/api/types';
 
@@ -48,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await registerRequest(payload);
     localStorage.setItem('access_token', response.access);
     localStorage.setItem('refresh_token', response.refresh);
+    // Исправлено: используем данные из поля user в ответе
     setUser(response.user);
   };
 

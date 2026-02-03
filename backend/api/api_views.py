@@ -59,7 +59,8 @@ class MeView(APIView):
     def patch(self, request):
         user = request.user
         data = request.data
-
+        
+        # УБРАЛИ логику с .get('profile') - данные приходят напрямую в корне
         user_fields = {
             'first_name',
             'last_name',
@@ -69,11 +70,7 @@ class MeView(APIView):
             'bio',
             'city',
         }
-
-        profile_data = data.get('profile') if isinstance(data, dict) else None
-        if not isinstance(profile_data, dict):
-            profile_data = {}
-
+        
         for field in user_fields:
             if field in data:
                 setattr(user, field, data[field])
@@ -90,8 +87,6 @@ class MeView(APIView):
             for field in profile_fields:
                 if field in data:
                     setattr(profile, field, data[field])
-                if field in profile_data:
-                    setattr(profile, field, profile_data[field])
             profile.save()
         elif user.user_type == 'organization':
             organization, _ = Organization.objects.get_or_create(user=user, defaults={'name': user.username})
@@ -106,8 +101,6 @@ class MeView(APIView):
             for field in profile_fields:
                 if field in data:
                     setattr(organization, field, data[field])
-                if field in profile_data:
-                    setattr(organization, field, profile_data[field])
             organization.save()
 
         return Response(MeSerializer(user).data)

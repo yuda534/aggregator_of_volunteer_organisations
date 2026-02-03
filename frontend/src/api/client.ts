@@ -4,16 +4,19 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
+
+// ❌ УДАЛЕНО: headers: { 'Content-Type': 'application/json' }
+// Добавляем Content-Type только для обычных объектов, не для FormData
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // ❌ УДАЛЕНО: ручная установка Content-Type
+  // Для FormData браузер сам установит правильный заголовок с boundary
   return config;
 });
 
@@ -30,7 +33,6 @@ api.interceptors.response.use(
         window.location.href = '/login';
         return Promise.reject(error);
       }
-
       try {
         const refreshResponse = await axios.post(`${API_BASE_URL}/auth/token/refresh/`, {
           refresh,

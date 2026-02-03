@@ -44,12 +44,10 @@ export async function register(payload: RegisterPayload) {
       formData.append(key, String(value));
     }
   });
-
-  const response = await api.post<AuthResponse>('/auth/register/', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  
+  // ❌ УДАЛЁН заголовок 'Content-Type': 'multipart/form-data'
+  // Браузер сам добавит правильный заголовок с boundary
+  const response = await api.post<AuthResponse>('/auth/register/', formData);
   return response.data;
 }
 
@@ -59,6 +57,16 @@ export async function getMe() {
 }
 
 export async function updateMe(payload: Record<string, unknown>) {
-  const response = await api.patch<MeResponse>('/auth/me/', payload);
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    if (value instanceof File) {
+      formData.append(key, value);
+    } else {
+      formData.append(key, String(value));
+    }
+  });
+  
+  const response = await api.patch<MeResponse>('/auth/me/', formData);
   return response.data;
 }
