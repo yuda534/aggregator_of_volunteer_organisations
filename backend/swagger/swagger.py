@@ -1,4 +1,16 @@
+import warnings
+
 from rest_framework import permissions
+
+# drf-yasg currently imports pkg_resources and emits a deprecation warning.
+# Keep logs clean until we migrate away from drf-yasg.
+warnings.filterwarnings(
+    'ignore',
+    message='pkg_resources is deprecated as an API.*',
+    category=UserWarning,
+    module='drf_yasg',
+)
+
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 

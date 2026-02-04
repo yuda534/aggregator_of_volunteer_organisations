@@ -5,6 +5,7 @@ Django settings for config project.
 from pathlib import Path
 import os
 import sys
+import warnings
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -15,6 +16,13 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
+
+# Temporary: drf-yasg uses pkg_resources and emits a global deprecation warning.
+warnings.filterwarnings(
+    'ignore',
+    message='pkg_resources is deprecated as an API.*',
+    category=UserWarning,
+)
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-1234567890")
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
