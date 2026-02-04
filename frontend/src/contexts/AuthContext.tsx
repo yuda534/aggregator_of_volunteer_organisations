@@ -47,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const response = await registerRequest(payload);
     localStorage.setItem('access_token', response.access);
     localStorage.setItem('refresh_token', response.refresh);
-    // Исправлено: используем данные из поля user в ответе
     setUser(response.user);
   };
 

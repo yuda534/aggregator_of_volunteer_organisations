@@ -44,9 +44,7 @@ export async function register(payload: RegisterPayload) {
       formData.append(key, String(value));
     }
   });
-  
-  // ❌ УДАЛЁН заголовок 'Content-Type': 'multipart/form-data'
-  // Браузер сам добавит правильный заголовок с boundary
+
   const response = await api.post<AuthResponse>('/auth/register/', formData);
   return response.data;
 }
@@ -66,7 +64,7 @@ export async function updateMe(payload: Record<string, unknown>) {
       formData.append(key, String(value));
     }
   });
-  
+
   const response = await api.patch<MeResponse>('/auth/me/', formData);
   return response.data;
 }

@@ -1,4 +1,7 @@
-from django.db.models import Count, Q
+from datetime import timedelta
+
+from django.db.models import Count, F, Q
+from django.utils import timezone
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -16,6 +19,7 @@ from .models import (
     VolunteerProfile,
 )
 from .permissions import IsOrganization, IsVolunteer
+from .services.no_show import process_no_show_applications
 from .serializers import (
     EventCreateUpdateSerializer,
     EventSerializer,
@@ -59,8 +63,7 @@ class MeView(APIView):
     def patch(self, request):
         user = request.user
         data = request.data
-        
-        # УБРАЛИ логику с .get('profile') - данные приходят напрямую в корне
+
         user_fields = {
             'first_name',
             'last_name',
@@ -70,7 +73,7 @@ class MeView(APIView):
             'bio',
             'city',
         }
-        
+
         for field in user_fields:
             if field in data:
                 setattr(user, field, data[field])
@@ -120,7 +123,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Event.objects.select_related('organization').annotate(
-            approved_count=Count(
+            approved_applications=Count(
                 'volunteerapplication',
                 filter=Q(volunteerapplication__status='approved'),
             )
@@ -177,15 +180,23 @@ class EventViewSet(viewsets.ModelViewSet):
         if not event.is_open_for_applications():
             raise ValidationError('Набор на мероприятие закрыт.')
 
-        application, created = VolunteerApplication.objects.get_or_create(
-            volunteer=volunteer,
-            event=event,
-        )
-        if not created:
-            raise ValidationError('Заявка уже существует.')
+        application = VolunteerApplication.objects.filter(volunteer=volunteer, event=event).first()
+        if application:
+            if application.status == 'cancelled':
+                application.status = 'pending'
+                application.cancelled_at = None
+                application.no_show_marked = False
+                application.save(update_fields=['status', 'cancelled_at', 'no_show_marked'])
+            else:
+                raise ValidationError('Заявка уже существует.')
+        else:
+            application = VolunteerApplication.objects.create(
+                volunteer=volunteer,
+                event=event,
+            )
 
         return Response(
-            VolunteerApplicationSerializer(application).data,
+            VolunteerApplicationSerializer(application, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -200,7 +211,9 @@ class EventViewSet(viewsets.ModelViewSet):
         event.status = 'cancelled'
         event.save(update_fields=['status'])
 
-        VolunteerApplication.objects.filter(event=event).exclude(status='rejected').update(status='rejected')
+        VolunteerApplication.objects.filter(event=event).exclude(
+            status__in=['rejected', 'cancelled']
+        ).update(status='rejected')
         return Response({'status': 'cancelled'})
 
     @action(detail=True, methods=['get'])
@@ -209,11 +222,24 @@ class EventViewSet(viewsets.ModelViewSet):
         if event.organization.user != request.user:
             raise PermissionDenied('Нельзя смотреть заявки чужого мероприятия.')
         applications = VolunteerApplication.objects.filter(event=event).select_related('volunteer__user', 'event')
-        return Response(VolunteerApplicationSerializer(applications, many=True).data)
+        return Response(
+            VolunteerApplicationSerializer(
+                applications,
+                many=True,
+                context={'request': request},
+            ).data
+        )
 
     @action(detail=False, methods=['get'], url_path='map')
     def map(self, request):
-        queryset = self.get_queryset().filter(latitude__isnull=False, longitude__isnull=False)
+        now = timezone.now()
+        queryset = self.get_queryset().filter(
+            latitude__isnull=False,
+            longitude__isnull=False,
+            status='active',
+            start_date__gt=now,
+            approved_applications__lt=F('required_volunteers'),
+        ).order_by('start_date')
         return Response(EventSerializer(queryset, many=True).data)
 
 
@@ -289,8 +315,18 @@ class InitiativeViewSet(viewsets.ModelViewSet):
 class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = VolunteerApplicationSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def get_permissions(self):
+        if self.action in ['set_status', 'review_absence_reason']:
+            return [IsOrganization()]
+        if self.action in ['cancel', 'submit_absence_reason']:
+            return [IsVolunteer()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
+        process_no_show_applications()
+
         user = self.request.user
         queryset = VolunteerApplication.objects.select_related('volunteer__user', 'event', 'event__organization')
         if user.user_type == 'volunteer':
@@ -312,12 +348,75 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
             raise PermissionDenied('Нельзя менять статус чужой заявки.')
 
         new_status = request.data.get('status')
-        if new_status not in dict(VolunteerApplication.STATUS_CHOICES):
+        if new_status not in {'approved', 'rejected'}:
             raise ValidationError('Некорректный статус.')
 
         application.status = new_status
         application.save(update_fields=['status'])
-        return Response(VolunteerApplicationSerializer(application).data)
+        return Response(
+            VolunteerApplicationSerializer(application, context={'request': request}).data
+        )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsVolunteer], url_path='cancel')
+    def cancel(self, request, pk=None):
+        application = self.get_object()
+        volunteer = VolunteerProfile.objects.filter(user=request.user).first()
+        if not volunteer or application.volunteer_id != volunteer.id:
+            raise PermissionDenied('Можно отменять только свои заявки.')
+
+        if not application.can_be_cancelled_by_volunteer():
+            deadline = application.event.start_date - timedelta(hours=24)
+            raise ValidationError(
+                f'Отмена недоступна. Дедлайн отмены: {deadline.strftime("%d.%m.%Y %H:%M")}.'
+            )
+
+        application.status = 'cancelled'
+        application.cancelled_at = timezone.now()
+        application.save(update_fields=['status', 'cancelled_at'])
+        return Response(
+            VolunteerApplicationSerializer(application, context={'request': request}).data
+        )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsVolunteer], url_path='absence-reason')
+    def submit_absence_reason(self, request, pk=None):
+        application = self.get_object()
+        volunteer = VolunteerProfile.objects.filter(user=request.user).first()
+        if not volunteer or application.volunteer_id != volunteer.id:
+            raise PermissionDenied('Можно отправлять документы только по своим заявкам.')
+
+        document = request.FILES.get('document')
+        comment = request.data.get('comment', '')
+        if not document:
+            raise ValidationError('Нужно приложить документ.')
+
+        application.absence_reason_document = document
+        application.absence_reason_comment = comment
+        application.absence_reason_approved = False
+        application.save(
+            update_fields=[
+                'absence_reason_document',
+                'absence_reason_comment',
+                'absence_reason_approved',
+            ]
+        )
+        return Response(
+            VolunteerApplicationSerializer(application, context={'request': request}).data
+        )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsOrganization], url_path='review-absence')
+    def review_absence_reason(self, request, pk=None):
+        application = self.get_object()
+        if application.event.organization.user != request.user:
+            raise PermissionDenied('Нельзя подтверждать документы по чужим мероприятиям.')
+
+        approved_raw = request.data.get('approved')
+        approved = str(approved_raw).lower() in {'1', 'true', 'yes', 'on'}
+        application.absence_reason_approved = approved
+        application.save(update_fields=['absence_reason_approved'])
+
+        return Response(
+            VolunteerApplicationSerializer(application, context={'request': request}).data
+        )
 
 
 class VolunteerReviewCreateView(generics.CreateAPIView):

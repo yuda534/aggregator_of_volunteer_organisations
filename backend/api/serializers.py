@@ -192,6 +192,7 @@ class EventSummarySerializer(serializers.ModelSerializer):
 class VolunteerApplicationSerializer(serializers.ModelSerializer):
     volunteer = VolunteerSummarySerializer(read_only=True)
     event = EventSummarySerializer(read_only=True)
+    can_volunteer_cancel = serializers.SerializerMethodField()
 
     class Meta:
         model = VolunteerApplication
@@ -201,8 +202,23 @@ class VolunteerApplicationSerializer(serializers.ModelSerializer):
             'event',
             'status',
             'applied_at',
+            'cancelled_at',
             'no_show_marked',
+            'absence_reason_document',
+            'absence_reason_comment',
+            'absence_reason_approved',
+            'can_volunteer_cancel',
         ]
+
+    def get_can_volunteer_cancel(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        if request.user.user_type != 'volunteer':
+            return False
+        if obj.volunteer.user_id != request.user.id:
+            return False
+        return obj.can_be_cancelled_by_volunteer()
 
 
 class VolunteerReviewSerializer(serializers.ModelSerializer):

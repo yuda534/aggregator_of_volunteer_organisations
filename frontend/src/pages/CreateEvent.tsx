@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { createEvent } from '@/api/events';
+import { useAuth } from '@/contexts/AuthContext';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function CreateEvent() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -18,25 +21,54 @@ export function CreateEvent() {
   const [requiredVolunteers, setRequiredVolunteers] = useState('10');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async () => {
-    const event = await createEvent({
-      title,
-      description,
-      start_date: startDate,
-      end_date: endDate,
-      location,
-      required_volunteers: Number(requiredVolunteers),
-      status: 'active',
-      latitude: latitude ? Number(latitude) : null,
-      longitude: longitude ? Number(longitude) : null,
-    });
-    navigate(`/events/${event.id}`);
+    try {
+      setError(null);
+      setIsSaving(true);
+      const event = await createEvent({
+        title,
+        description,
+        start_date: startDate,
+        end_date: endDate,
+        location,
+        required_volunteers: Number(requiredVolunteers),
+        status: 'active',
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+      });
+      navigate(`/events/${event.id}`);
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.detail ||
+        err?.response?.data?.non_field_errors?.[0] ||
+        'Не удалось создать мероприятие.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  if (user?.user_type !== 'organization') {
+    return (
+      <div className="container py-12">
+        <Alert variant="destructive">
+          <AlertDescription>Создавать мероприятия могут только организации.</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-12 space-y-8">
       <SectionHeader title="Создать мероприятие" subtitle="Опишите событие и опубликуйте его." />
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <Card>
         <CardHeader>
           <CardTitle>Параметры события</CardTitle>
@@ -79,7 +111,7 @@ export function CreateEvent() {
             className="md:col-span-2"
           />
           <Button className="md:col-span-2" onClick={handleSubmit}>
-            Опубликовать
+            {isSaving ? 'Публикация...' : 'Опубликовать'}
           </Button>
         </CardContent>
       </Card>

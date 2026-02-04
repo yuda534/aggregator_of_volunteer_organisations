@@ -65,9 +65,14 @@ export interface VolunteerApplication {
   id: number;
   volunteer: VolunteerPublic;
   event: EventSummary;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'cancelled';
   applied_at: string;
+  cancelled_at?: string | null;
   no_show_marked: boolean;
+  absence_reason_document?: string | null;
+  absence_reason_comment?: string;
+  absence_reason_approved?: boolean;
+  can_volunteer_cancel?: boolean;
 }
 
 export interface Initiative {

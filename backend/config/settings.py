@@ -4,6 +4,7 @@ Django settings for config project.
 
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 from datetime import timedelta
 
@@ -54,6 +55,7 @@ AUTH_USER_MODEL = 'api.CustomUser'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,13 +92,14 @@ TEMPLATES = [
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # ======================================================
 # DATABASE
 # ======================================================
 
-if os.getenv("USE_SQLITE", "True") == "True":
+if os.getenv("USE_SQLITE", "True") == "True" or 'test' in sys.argv:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -193,3 +196,8 @@ CSRF_TRUSTED_ORIGINS = [
     ).split(",")
     if origin.strip()
 ]
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

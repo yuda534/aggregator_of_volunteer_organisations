@@ -6,17 +6,12 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-// ❌ УДАЛЕНО: headers: { 'Content-Type': 'application/json' }
-// Добавляем Content-Type только для обычных объектов, не для FormData
-
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  
-  // ❌ УДАЛЕНО: ручная установка Content-Type
-  // Для FormData браузер сам установит правильный заголовок с boundary
+
   return config;
 });
 

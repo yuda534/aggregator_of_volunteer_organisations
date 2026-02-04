@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models import Avg
@@ -113,6 +115,9 @@ class Event(models.Model):
     @property
     def approved_count(self):
         """Количество одобренных заявок (property для использования в шаблонах)"""
+        annotated_count = getattr(self, 'approved_applications', None)
+        if annotated_count is not None:
+            return annotated_count
         return self.volunteerapplication_set.filter(status='approved').count()
 
     def is_open_for_applications(self):
@@ -121,7 +126,7 @@ class Event(models.Model):
         return (
             self.status == 'active'
             and self.approved_count < self.required_volunteers
-            and now < self.end_date  # Добавили проверку времени
+            and now < self.start_date
         )
 
     def is_completed(self):
@@ -173,21 +178,31 @@ class VolunteerApplication(models.Model):
         ('pending', 'На рассмотрении'),
         ('approved', 'Одобрено'),
         ('rejected', 'Отклонено'),
+        ('cancelled', 'Отменено волонтёром'),
     )
 
     volunteer = models.ForeignKey(VolunteerProfile, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     applied_at = models.DateTimeField(auto_now_add=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
 
     # заложено под автоматическое снижение рейтинга
     no_show_marked = models.BooleanField(default=False)
+    absence_reason_document = models.FileField(upload_to='absence_reasons/', blank=True, null=True)
+    absence_reason_comment = models.TextField(blank=True)
+    absence_reason_approved = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('volunteer', 'event')
 
     def __str__(self):
         return f"{self.volunteer} -> {self.event}"
+
+    def can_be_cancelled_by_volunteer(self):
+        if self.status not in {'pending', 'approved'}:
+            return False
+        return timezone.now() <= (self.event.start_date - timedelta(hours=24))
 
 
 # ======================================================

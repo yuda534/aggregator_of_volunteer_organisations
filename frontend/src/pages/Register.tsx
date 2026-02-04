@@ -128,13 +128,13 @@ export function Register() {
               <Input
                 value={form.first_name}
                 onChange={(event) => handleChange('first_name', event.target.value)}
-                placeholder="Имя"
+                placeholder={userType === 'organization' ? 'Имя менеджера' : 'Имя'}
                 disabled={isLoading}
               />
               <Input
                 value={form.last_name}
                 onChange={(event) => handleChange('last_name', event.target.value)}
-                placeholder="Фамилия"
+                placeholder={userType === 'organization' ? 'Фамилия менеджера' : 'Фамилия'}
                 disabled={isLoading}
               />
               <Input

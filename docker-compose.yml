@@ -1,4 +1,18 @@
 services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-volunteers_agg_db}
+      POSTGRES_USER: ${DB_USER:-volunteers_agg}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-volunteers_agg} -d ${DB_NAME:-volunteers_agg_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: .
@@ -11,7 +25,7 @@ services:
       DB_NAME: ${DB_NAME:-volunteers_agg_db}
       DB_USER: ${DB_USER:-volunteers_agg}
       DB_PASSWORD: ${DB_PASSWORD:-change-me}
-      DB_HOST: ${DB_HOST:-localhost}
+      DB_HOST: ${DB_HOST:-db}
       DB_PORT: ${DB_PORT:-5432}
       YANDEX_MAPS_API_KEY: ${YANDEX_MAPS_API_KEY:-}
       VITE_YANDEX_MAPS_API_KEY: ${VITE_YANDEX_MAPS_API_KEY:-}
@@ -21,6 +35,9 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/media:/app/backend/media
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -33,3 +50,6 @@ services:
       - "5173:80"
     depends_on:
       - backend
+
+volumes:
+  postgres_data:

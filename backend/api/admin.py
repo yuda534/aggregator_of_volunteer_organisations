@@ -54,8 +54,16 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(VolunteerApplication)
 class VolunteerApplicationAdmin(admin.ModelAdmin):
-    list_display = ('volunteer', 'event', 'status', 'applied_at', 'no_show_marked')
-    list_filter = ('status', 'no_show_marked')
+    list_display = (
+        'volunteer',
+        'event',
+        'status',
+        'applied_at',
+        'cancelled_at',
+        'no_show_marked',
+        'absence_reason_approved',
+    )
+    list_filter = ('status', 'no_show_marked', 'absence_reason_approved')
     search_fields = ('volunteer__user__username', 'event__title')
     raw_id_fields = ('volunteer', 'event')
 
@@ -64,7 +72,12 @@ class VolunteerApplicationAdmin(admin.ModelAdmin):
 class VolunteerReviewAdmin(admin.ModelAdmin):
     list_display = ('volunteer', 'organization', 'rating', 'created_at')
     list_filter = ('rating',)
-    search_fields = ('volunteer__user__username', 'organization__name', 'comment')
+    search_fields = (
+        'volunteer__user__username',
+        'organization__name',
+        'positive_comment',
+        'negative_comment',
+    )
     raw_id_fields = ('volunteer', 'organization', 'event')
 
 
@@ -72,5 +85,10 @@ class VolunteerReviewAdmin(admin.ModelAdmin):
 class OrganizationReviewAdmin(admin.ModelAdmin):
     list_display = ('organization', 'volunteer', 'rating', 'created_at')
     list_filter = ('rating',)
-    search_fields = ('organization__name', 'volunteer__user__username', 'comment')
+    search_fields = (
+        'organization__name',
+        'volunteer__user__username',
+        'positive_comment',
+        'negative_comment',
+    )
     raw_id_fields = ('organization', 'volunteer', 'event')

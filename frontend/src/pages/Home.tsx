@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/common/SectionHeader';
-import { StatCard } from '@/components/common/StatCard';
 
 export function Home() {
   const { user } = useAuth();
@@ -54,11 +53,6 @@ export function Home() {
                 <Button variant="outline" asChild size="lg">
                   <Link to="/organizations">Найти организацию</Link>
                 </Button>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <StatCard label="События сегодня" value="20+" />
-                <StatCard label="Организации" value="80+" />
-                <StatCard label="Волонтёры" value="1200+" />
               </div>
             </div>
             <Card className="border-none bg-background/80 shadow-lg">
