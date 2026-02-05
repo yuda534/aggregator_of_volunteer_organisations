@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { CalendarDays, MapPin, Users } from 'lucide-react';
+import { Building2, CalendarDays, MapPin, Users } from 'lucide-react';
 
 import { applyToEvent, cancelEvent, getEvent, getEventApplications } from '@/api/events';
 import {
@@ -199,6 +199,10 @@ export function EventDetail() {
               {new Date(event.start_date).toLocaleString()} — {new Date(event.end_date).toLocaleString()}
             </div>
             <div className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              {event.organization.name}
+            </div>
+            <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               {event.location}
             </div>
@@ -211,6 +215,11 @@ export function EventDetail() {
             {canVolunteerApply && (
               <Button className="w-full" onClick={handleApply}>
                 Подать заявку
+              </Button>
+            )}
+            {user?.user_type === 'volunteer' && myApplication && (
+              <Button className="w-full" disabled>
+                Вы уже подали заявку на это мероприятие
               </Button>
             )}
             {myApplication &&
@@ -298,18 +307,22 @@ export function EventDetail() {
                     </div>
                   )}
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleStatusChange(application.id, 'approved')}
-                    >
-                      Одобрить
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleStatusChange(application.id, 'rejected')}
-                    >
-                      Отклонить
-                    </Button>
+                    {application.status === 'pending' && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleStatusChange(application.id, 'approved')}
+                        >
+                          Одобрить
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleStatusChange(application.id, 'rejected')}
+                        >
+                          Отклонить
+                        </Button>
+                      </>
+                    )}
                     {event && new Date(event.end_date) < new Date() && application.status === 'approved' && (
                       <Dialog
                         open={volunteerReviewTarget?.id === application.id}

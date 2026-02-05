@@ -19,6 +19,17 @@ export function Home() {
   const [initiatives, setInitiatives] = useState<Initiative[]>([]);
   const [volunteers, setVolunteers] = useState<VolunteerDetail[]>([]);
 
+  const heroPrimaryLink =
+    user?.user_type === 'organization'
+      ? { to: '/initiatives', label: 'Смотреть инициативы' }
+      : { to: '/events', label: 'Смотреть мероприятия' };
+
+  const getVolunteerName = (initiative: Initiative) => {
+    const userInfo = initiative.volunteer?.user;
+    const fullName = [userInfo?.first_name, userInfo?.last_name].filter(Boolean).join(' ').trim();
+    return fullName || userInfo?.username || 'Волонтёр';
+  };
+
   useEffect(() => {
     if (user?.user_type === 'organization') {
       getVolunteers()
@@ -55,8 +66,8 @@ export function Home() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg">
-                  <Link to="/events">
-                    Смотреть мероприятия <ArrowRight className="h-4 w-4" />
+                  <Link to={heroPrimaryLink.to}>
+                    {heroPrimaryLink.label} <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button variant="outline" asChild size="lg">
@@ -130,6 +141,9 @@ export function Home() {
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm text-muted-foreground">
                   <p>{event.description.slice(0, 120)}...</p>
+                  <p className="text-xs text-muted-foreground">
+                    Организация: {event.organization.name}
+                  </p>
                   <div className="flex items-center gap-2 text-xs">
                     <CalendarDays className="h-4 w-4" />
                     {new Date(event.start_date).toLocaleDateString()}
@@ -157,8 +171,11 @@ export function Home() {
                   <CardTitle>{initiative.title}</CardTitle>
                   <Badge variant="secondary">{initiative.status_label || initiative.status}</Badge>
                 </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  {initiative.description.slice(0, 140)}...
+                <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <p>{initiative.description.slice(0, 140)}...</p>
+                  <p className="text-xs text-muted-foreground">
+                    Автор: {getVolunteerName(initiative)}
+                  </p>
                   {initiative.status !== 'cancelled' && (
                     <Button asChild variant="outline" className="mt-3 w-full">
                       <Link to={`/initiatives/${initiative.id}`}>Подробнее</Link>

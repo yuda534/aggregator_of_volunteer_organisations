@@ -382,6 +382,8 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         application = self.get_object()
         if application.event.organization.user != request.user:
             raise PermissionDenied('Нельзя менять статус чужой заявки.')
+        if application.status != 'pending':
+            raise ValidationError('Нельзя менять решение по заявке повторно.')
 
         new_status = request.data.get('status')
         if new_status not in {'approved', 'rejected'}:

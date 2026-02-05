@@ -85,10 +85,27 @@ export function Map() {
             <div>
               <div>${new Date(event.start_date).toLocaleString('ru-RU')}</div>
               <div>Свободных мест: ${freeSpots}</div>
+              <div>Организация: ${event.organization.name}</div>
               <div>${event.location}</div>
             </div>
           `,
-          balloonContentFooter: `<a href="/events/${event.id}">Подробнее</a>`,
+          balloonContentFooter: `
+            <a
+              href="/events/${event.id}"
+              style="
+                display:inline-block;
+                margin-top:8px;
+                padding:6px 12px;
+                border:1px solid #F06A2C;
+                border-radius:10px;
+                color:#F06A2C;
+                text-decoration:none;
+                font-weight:600;
+              "
+            >
+              Подробнее
+            </a>
+          `,
           hintContent: event.title,
         },
         {
@@ -156,6 +173,7 @@ export function Map() {
                   <p className="text-sm text-muted-foreground">
                     {new Date(event.start_date).toLocaleString('ru-RU')} • свободно мест: {freeSpots}
                   </p>
+                  <p className="text-xs text-muted-foreground">Организация: {event.organization.name}</p>
                 </div>
                 <Button asChild variant="outline">
                   <Link to={`/events/${event.id}`}>Открыть</Link>

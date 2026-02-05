@@ -59,6 +59,9 @@ export function Events() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>{event.description.slice(0, 140)}...</p>
+              <p className="text-xs text-muted-foreground">
+                Организация: {event.organization.name}
+              </p>
               <div className="flex items-center gap-2 text-xs">
                 <CalendarDays className="h-4 w-4" />
                 {new Date(event.start_date).toLocaleString()}

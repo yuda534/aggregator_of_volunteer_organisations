@@ -17,6 +17,12 @@ export function Initiatives() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
+  const getVolunteerName = (initiative: Initiative) => {
+    const userInfo = initiative.volunteer?.user;
+    const fullName = [userInfo?.first_name, userInfo?.last_name].filter(Boolean).join(' ').trim();
+    return fullName || userInfo?.username || 'Волонтёр';
+  };
+
   useEffect(() => {
     getInitiatives()
       .then(setInitiatives)
@@ -68,8 +74,11 @@ export function Initiatives() {
               <CardTitle>{initiative.title}</CardTitle>
               <Badge variant="secondary">{initiative.status_label || initiative.status}</Badge>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {initiative.description.slice(0, 160)}...
+            <CardContent className="space-y-2 text-sm text-muted-foreground">
+              <p>{initiative.description.slice(0, 160)}...</p>
+              <p className="text-xs text-muted-foreground">
+                Автор: {getVolunteerName(initiative)}
+              </p>
               <Button asChild variant="outline" className="mt-3 w-full">
                 <Link to={`/initiatives/${initiative.id}`}>Подробнее</Link>
               </Button>
