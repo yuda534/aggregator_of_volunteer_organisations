@@ -82,19 +82,13 @@ export function Map() {
         {
           balloonContentHeader: event.title,
           balloonContentBody: `
-            <div style="display:flex;flex-direction:column;gap:6px;">
+            <div>
               <div>${new Date(event.start_date).toLocaleString('ru-RU')}</div>
               <div>Свободных мест: ${freeSpots}</div>
               <div>${event.location}</div>
             </div>
           `,
-          balloonContentFooter: `
-            <div style="margin-top:8px;">
-              <a href="/events/${event.id}" style="display:inline-block;padding:6px 12px;border:1px solid #cbd5f5;border-radius:10px;text-decoration:none;color:#1f2937;">
-                Подробнее
-              </a>
-            </div>
-          `,
+          balloonContentFooter: `<a href="/events/${event.id}">Подробнее</a>`,
           hintContent: event.title,
         },
         {
