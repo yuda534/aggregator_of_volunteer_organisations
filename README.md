@@ -46,3 +46,8 @@
 - `VITE_API_URL` (например `https://example.com/api/v1`)
 - `VITE_YANDEX_MAPS_API_KEY` (опционально)
 - `YANDEX_MAPS_API_KEY` (опционально)
+- `AWS_ACCESS_KEY_ID` (если используете S3/MinIO для медиа)
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_STORAGE_BUCKET_NAME`
+- `AWS_S3_REGION_NAME`
+- `AWS_S3_ENDPOINT_URL`
