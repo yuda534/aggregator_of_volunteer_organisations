@@ -207,7 +207,7 @@ if USE_S3_STORAGE:
     AWS_S3_FILE_OVERWRITE = False
     AWS_S3_ADDRESSING_STYLE = 'path'
     AWS_S3_SIGNATURE_VERSION = 's3v4'
-    MEDIA_URL = f\"{AWS_S3_ENDPOINT_URL.rstrip('/')}/{AWS_STORAGE_BUCKET_NAME}/\"
+    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL.rstrip('/')}/{AWS_STORAGE_BUCKET_NAME}/"
 
 
 # ======================================================
