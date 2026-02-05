@@ -9,6 +9,7 @@ import { SectionHeader } from '@/components/common/SectionHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function OrganizationDetail() {
   const { id } = useParams();
@@ -40,7 +41,13 @@ export function OrganizationDetail() {
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Информация</CardTitle>
+            <CardTitle className="flex items-center gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={organization.logo || undefined} alt={organization.name} />
+                <AvatarFallback>{organization.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              Информация
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Volunteers() {
   const [volunteers, setVolunteers] = useState<VolunteerDetail[]>([]);
@@ -41,7 +42,15 @@ export function Volunteers() {
         {volunteers.map((volunteer) => (
           <Card key={volunteer.id} className="flex flex-col">
             <CardHeader>
-              <CardTitle>{volunteer.user.username}</CardTitle>
+              <CardTitle className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={volunteer.user.avatar || undefined} alt={volunteer.user.username} />
+                  <AvatarFallback>
+                    {(volunteer.user.first_name || volunteer.user.username).slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {volunteer.user.username}
+              </CardTitle>
               <Badge variant="muted">Рейтинг: {volunteer.rating}</Badge>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">

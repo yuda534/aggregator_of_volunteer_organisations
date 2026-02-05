@@ -14,7 +14,10 @@ from datetime import timedelta
 # ======================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = BASE_DIR.parent
 
+# Load root .env first (repo-level), then backend/.env to allow overrides.
+load_dotenv(PROJECT_ROOT / ".env")
 load_dotenv(BASE_DIR / ".env")
 
 # Temporary: drf-yasg uses pkg_resources and emits a global deprecation warning.
@@ -24,7 +27,11 @@ warnings.filterwarnings(
     category=UserWarning,
 )
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key-1234567890")
+SECRET_KEY = (
+    os.getenv("DJANGO_SECRET_KEY")
+    or os.getenv("SECRET_KEY")
+    or "dev-secret-key-1234567890"
+)
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()]

@@ -10,8 +10,9 @@ from .api_views import (
     ApplicationViewSet,
     RegisterView,
     MeView,
-    VolunteerReviewCreateView,
-    OrganizationReviewCreateView,
+    VolunteerReviewView,
+    OrganizationReviewView,
+    NotificationViewSet,
 )
 
 router = DefaultRouter()
@@ -20,13 +21,14 @@ router.register(r'organizations', OrganizationViewSet, basename='organization')
 router.register(r'volunteers', VolunteerViewSet, basename='volunteer')
 router.register(r'initiatives', InitiativeViewSet, basename='initiative')
 router.register(r'applications', ApplicationViewSet, basename='application')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 
 urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='auth-register'),
     path('auth/me/', MeView.as_view(), name='auth-me'),
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('reviews/volunteers/', VolunteerReviewCreateView.as_view(), name='review-volunteer'),
-    path('reviews/organizations/', OrganizationReviewCreateView.as_view(), name='review-organization'),
+    path('reviews/volunteers/', VolunteerReviewView.as_view(), name='review-volunteer'),
+    path('reviews/organizations/', OrganizationReviewView.as_view(), name='review-organization'),
     path('', include(router.urls)),
 ]

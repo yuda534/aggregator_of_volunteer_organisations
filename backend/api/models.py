@@ -215,7 +215,8 @@ class VolunteerReview(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField()  # 1-5 звезд
     positive_comment = models.TextField(blank=True, verbose_name="Что понравилось")
-    negative_comment = models.TextField(blank=True, verbose_name="Что можно улучшить")
+    negative_comment = models.TextField(blank=True, verbose_name="Что не понравилось")
+    improvement_comment = models.TextField(blank=True, verbose_name="Что можно улучшить")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -237,7 +238,8 @@ class OrganizationReview(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     rating = models.PositiveSmallIntegerField()  # 1-5 звезд
     positive_comment = models.TextField(blank=True, verbose_name="Что понравилось")
-    negative_comment = models.TextField(blank=True, verbose_name="Что можно улучшить")
+    negative_comment = models.TextField(blank=True, verbose_name="Что не понравилось")
+    improvement_comment = models.TextField(blank=True, verbose_name="Что можно улучшить")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -286,3 +288,31 @@ class Initiative(models.Model):
             'cancelled': 'danger',
         }
         return colors.get(self.status, 'secondary')
+
+
+# ======================================================
+# NOTIFICATIONS
+# ======================================================
+
+class Notification(models.Model):
+    TYPE_CHOICES = (
+        ('application_created', 'Новая заявка'),
+        ('application_approved', 'Заявка одобрена'),
+        ('application_rejected', 'Заявка отклонена'),
+        ('review_received', 'Новый отзыв'),
+    )
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=50, choices=TYPE_CHOICES)
+    title = models.CharField(max_length=255)
+    message = models.TextField(blank=True)
+    link = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.title}"
+
+    @property
+    def is_read(self):
+        return self.read_at is not None

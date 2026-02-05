@@ -7,7 +7,8 @@ from .models import (
     Event,
     VolunteerApplication,
     VolunteerReview,
-    OrganizationReview
+    OrganizationReview,
+    Notification,
 )
 
 
@@ -77,6 +78,7 @@ class VolunteerReviewAdmin(admin.ModelAdmin):
         'organization__name',
         'positive_comment',
         'negative_comment',
+        'improvement_comment',
     )
     raw_id_fields = ('volunteer', 'organization', 'event')
 
@@ -90,5 +92,13 @@ class OrganizationReviewAdmin(admin.ModelAdmin):
         'volunteer__user__username',
         'positive_comment',
         'negative_comment',
+        'improvement_comment',
     )
     raw_id_fields = ('organization', 'volunteer', 'event')
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'notification_type', 'title', 'created_at', 'read_at')
+    list_filter = ('notification_type', 'read_at')
+    search_fields = ('user__username', 'title', 'message')

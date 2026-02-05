@@ -15,6 +15,7 @@ import { Map } from '@/pages/Map';
 import { Profile } from '@/pages/Profile';
 import { Applications } from '@/pages/Applications';
 import { CreateEvent } from '@/pages/CreateEvent';
+import { Notifications } from '@/pages/Notifications';
 import { Login } from '@/pages/Login';
 import { Register } from '@/pages/Register';
 import { NotFound } from '@/pages/NotFound';
@@ -57,6 +58,14 @@ export function App() {
               element={
                 <RequireAuth>
                   <CreateEvent />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="notifications"
+              element={
+                <RequireAuth>
+                  <Notifications />
                 </RequireAuth>
               }
             />

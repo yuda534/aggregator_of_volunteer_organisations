@@ -30,6 +30,7 @@ export function EventDetail() {
   const [reviewRating, setReviewRating] = useState('5');
   const [reviewPositive, setReviewPositive] = useState('');
   const [reviewNegative, setReviewNegative] = useState('');
+  const [reviewImprovement, setReviewImprovement] = useState('');
   const [volunteerReviewTarget, setVolunteerReviewTarget] = useState<VolunteerApplication | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -110,10 +111,12 @@ export function EventDetail() {
       rating: Number(reviewRating),
       positive_comment: reviewPositive,
       negative_comment: reviewNegative,
+      improvement_comment: reviewImprovement,
     });
     setVolunteerReviewTarget(null);
     setReviewPositive('');
     setReviewNegative('');
+    setReviewImprovement('');
   };
 
   const handleOrganizationReview = async () => {
@@ -124,9 +127,11 @@ export function EventDetail() {
       rating: Number(reviewRating),
       positive_comment: reviewPositive,
       negative_comment: reviewNegative,
+      improvement_comment: reviewImprovement,
     });
     setReviewPositive('');
     setReviewNegative('');
+    setReviewImprovement('');
   };
 
   const handleCancelEvent = async () => {
@@ -326,7 +331,12 @@ export function EventDetail() {
                           <Textarea
                             value={reviewNegative}
                             onChange={(e) => setReviewNegative(e.target.value)}
-                            placeholder="Что улучшить"
+                            placeholder="Что не понравилось"
+                          />
+                          <Textarea
+                            value={reviewImprovement}
+                            onChange={(e) => setReviewImprovement(e.target.value)}
+                            placeholder="Что можно улучшить"
                           />
                           <Button onClick={handleVolunteerReview}>Отправить</Button>
                         </div>
@@ -361,7 +371,12 @@ export function EventDetail() {
               <Textarea
                 value={reviewNegative}
                 onChange={(e) => setReviewNegative(e.target.value)}
-                placeholder="Что улучшить"
+                placeholder="Что не понравилось"
+              />
+              <Textarea
+                value={reviewImprovement}
+                onChange={(e) => setReviewImprovement(e.target.value)}
+                placeholder="Что можно улучшить"
               />
               <Button onClick={handleOrganizationReview}>Отправить отзыв</Button>
             </CardContent>

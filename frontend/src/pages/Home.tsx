@@ -53,6 +53,11 @@ export function Home() {
                 <Button variant="outline" asChild size="lg">
                   <Link to="/organizations">Найти организацию</Link>
                 </Button>
+                {user && (
+                  <Button variant="secondary" asChild size="lg">
+                    <Link to="/notifications">Уведомления</Link>
+                  </Button>
+                )}
               </div>
             </div>
             <Card className="border-none bg-background/80 shadow-lg">
@@ -116,7 +121,7 @@ export function Home() {
               <Card key={initiative.id}>
                 <CardHeader>
                   <CardTitle>{initiative.title}</CardTitle>
-                  <Badge variant="secondary">{initiative.status}</Badge>
+                  <Badge variant="secondary">{initiative.status_label || initiative.status}</Badge>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   {initiative.description.slice(0, 140)}...

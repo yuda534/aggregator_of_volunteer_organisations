@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Organizations() {
   const [organizations, setOrganizations] = useState<OrganizationDetail[]>([]);
@@ -45,7 +46,13 @@ export function Organizations() {
         {organizations.map((org) => (
           <Card key={org.id} className="flex flex-col">
             <CardHeader>
-              <CardTitle>{org.name}</CardTitle>
+              <CardTitle className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={org.logo || undefined} alt={org.name} />
+                  <AvatarFallback>{org.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                {org.name}
+              </CardTitle>
               <Badge variant="muted">Рейтинг: {org.rating}</Badge>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">

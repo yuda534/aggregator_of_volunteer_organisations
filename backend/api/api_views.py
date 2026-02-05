@@ -14,17 +14,22 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import (
     Event,
     Initiative,
+    Notification,
     Organization,
+    OrganizationReview,
     VolunteerApplication,
     VolunteerProfile,
+    VolunteerReview,
 )
 from .permissions import IsOrganization, IsVolunteer
 from .services.no_show import process_no_show_applications
+from .services.notifications import create_notification
 from .serializers import (
     EventCreateUpdateSerializer,
     EventSerializer,
     InitiativeSerializer,
     MeSerializer,
+    NotificationSerializer,
     OrganizationSerializer,
     OrganizationReviewSerializer,
     RegisterSerializer,
@@ -195,6 +200,14 @@ class EventViewSet(viewsets.ModelViewSet):
                 event=event,
             )
 
+        create_notification(
+            user=event.organization.user,
+            notification_type='application_created',
+            title='Новая заявка на мероприятие',
+            message=f'{volunteer.user.username} подал(а) заявку на "{event.title}".',
+            link=f'/events/{event.id}',
+        )
+
         return Response(
             VolunteerApplicationSerializer(application, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
@@ -238,6 +251,7 @@ class EventViewSet(viewsets.ModelViewSet):
             longitude__isnull=False,
             status='active',
             start_date__gt=now,
+            end_date__gt=now,
             approved_applications__lt=F('required_volunteers'),
         ).order_by('start_date')
         return Response(EventSerializer(queryset, many=True).data)
@@ -256,7 +270,6 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(
                 Q(name__icontains=search)
                 | Q(description__icontains=search)
-                | Q(user__username__icontains=search)
             )
         if city:
             queryset = queryset.filter(user__city__icontains=city)
@@ -288,6 +301,13 @@ class InitiativeViewSet(viewsets.ModelViewSet):
     queryset = Initiative.objects.select_related('volunteer__user')
     serializer_class = InitiativeSerializer
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        volunteer_id = self.request.query_params.get('volunteer')
+        if volunteer_id:
+            queryset = queryset.filter(volunteer_id=volunteer_id)
+        return queryset.order_by('-created_at')
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
@@ -353,6 +373,19 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
 
         application.status = new_status
         application.save(update_fields=['status'])
+
+        notification_type = 'application_approved' if new_status == 'approved' else 'application_rejected'
+        create_notification(
+            user=application.volunteer.user,
+            notification_type=notification_type,
+            title='Статус заявки изменён',
+            message=(
+                f'Ваша заявка на "{application.event.title}" получила статус: '
+                f'{application.get_status_display().lower()}.'
+            ),
+            link=f'/events/{application.event.id}',
+        )
+
         return Response(
             VolunteerApplicationSerializer(application, context={'request': request}).data
         )
@@ -419,10 +452,24 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class VolunteerReviewCreateView(generics.CreateAPIView):
+class VolunteerReviewView(generics.ListCreateAPIView):
     serializer_class = VolunteerReviewSerializer
-    permission_classes = [IsOrganization]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsOrganization()]
+        return [AllowAny()]
+
+    def get_queryset(self):
+        queryset = VolunteerReview.objects.select_related('event', 'volunteer__user', 'organization')
+        volunteer_id = self.request.query_params.get('volunteer')
+        organization_id = self.request.query_params.get('organization')
+        if volunteer_id:
+            queryset = queryset.filter(volunteer_id=volunteer_id)
+        if organization_id:
+            queryset = queryset.filter(organization_id=organization_id)
+        return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
         organization = Organization.objects.filter(user=self.request.user).first()
@@ -443,13 +490,35 @@ class VolunteerReviewCreateView(generics.CreateAPIView):
         if not approved:
             raise ValidationError('Нельзя оставить отзыв: волонтёр не был одобрен.')
 
-        serializer.save(organization=organization)
+        review = serializer.save(organization=organization)
+        create_notification(
+            user=volunteer.user,
+            notification_type='review_received',
+            title='Новый отзыв от организации',
+            message=f'Вы получили отзыв по мероприятию "{event.title}".',
+            link='/profile?tab=reviews',
+        )
+        return review
 
 
-class OrganizationReviewCreateView(generics.CreateAPIView):
+class OrganizationReviewView(generics.ListCreateAPIView):
     serializer_class = OrganizationReviewSerializer
-    permission_classes = [IsVolunteer]
     parser_classes = [JSONParser, FormParser, MultiPartParser]
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsVolunteer()]
+        return [AllowAny()]
+
+    def get_queryset(self):
+        queryset = OrganizationReview.objects.select_related('event', 'organization', 'volunteer__user')
+        organization_id = self.request.query_params.get('organization')
+        volunteer_id = self.request.query_params.get('volunteer')
+        if organization_id:
+            queryset = queryset.filter(organization_id=organization_id)
+        if volunteer_id:
+            queryset = queryset.filter(volunteer_id=volunteer_id)
+        return queryset.order_by('-created_at')
 
     def perform_create(self, serializer):
         volunteer = VolunteerProfile.objects.filter(user=self.request.user).first()
@@ -469,4 +538,34 @@ class OrganizationReviewCreateView(generics.CreateAPIView):
         if not approved:
             raise ValidationError('Нельзя оставить отзыв: вы не участвовали в этом мероприятии.')
 
-        serializer.save(volunteer=volunteer)
+        review = serializer.save(volunteer=volunteer)
+        create_notification(
+            user=organization.user,
+            notification_type='review_received',
+            title='Новый отзыв о вашей организации',
+            message=f'Получен отзыв по мероприятию "{event.title}".',
+            link='/profile?tab=reviews',
+        )
+        return review
+
+
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Notification.objects.filter(user=self.request.user).order_by('-created_at')
+        status_filter = self.request.query_params.get('status')
+        if status_filter == 'unread':
+            queryset = queryset.filter(read_at__isnull=True)
+        if status_filter == 'read':
+            queryset = queryset.filter(read_at__isnull=False)
+        return queryset
+
+    @action(detail=True, methods=['post'])
+    def read(self, request, pk=None):
+        notification = self.get_object()
+        if notification.read_at is None:
+            notification.read_at = timezone.now()
+            notification.save(update_fields=['read_at'])
+        return Response(NotificationSerializer(notification).data)

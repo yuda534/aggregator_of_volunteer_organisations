@@ -60,7 +60,7 @@ export function Initiatives() {
           <Card key={initiative.id}>
             <CardHeader>
               <CardTitle>{initiative.title}</CardTitle>
-              <Badge variant="secondary">{initiative.status}</Badge>
+              <Badge variant="secondary">{initiative.status_label || initiative.status}</Badge>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
               {initiative.description.slice(0, 160)}...

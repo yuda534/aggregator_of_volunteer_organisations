@@ -82,8 +82,54 @@ export interface Initiative {
   description: string;
   image?: string | null;
   status: string;
+  status_label?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface ReviewEventSummary {
+  id: number;
+  title: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
+
+export interface VolunteerReview {
+  id: number;
+  volunteer: number | VolunteerPublic;
+  organization: number | OrganizationPublic;
+  event: number;
+  event_details?: ReviewEventSummary;
+  rating: number;
+  positive_comment?: string;
+  negative_comment?: string;
+  improvement_comment?: string;
+  created_at: string;
+}
+
+export interface OrganizationReview {
+  id: number;
+  organization: number | OrganizationPublic;
+  volunteer: number | VolunteerPublic;
+  event: number;
+  event_details?: ReviewEventSummary;
+  rating: number;
+  positive_comment?: string;
+  negative_comment?: string;
+  improvement_comment?: string;
+  created_at: string;
+}
+
+export interface NotificationItem {
+  id: number;
+  notification_type: string;
+  title: string;
+  message?: string;
+  link?: string;
+  created_at: string;
+  read_at?: string | null;
+  is_read: boolean;
 }
 
 export interface MeProfileVolunteer {

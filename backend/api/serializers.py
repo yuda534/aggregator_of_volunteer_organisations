@@ -11,6 +11,7 @@ from .models import (
     VolunteerReview,
     OrganizationReview,
     Initiative,
+    Notification,
 )
 
 
@@ -223,6 +224,7 @@ class VolunteerApplicationSerializer(serializers.ModelSerializer):
 
 class VolunteerReviewSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(min_value=1, max_value=5)
+    event_details = EventSummarySerializer(source='event', read_only=True)
 
     class Meta:
         model = VolunteerReview
@@ -231,9 +233,11 @@ class VolunteerReviewSerializer(serializers.ModelSerializer):
             'volunteer',
             'organization',
             'event',
+            'event_details',
             'rating',
             'positive_comment',
             'negative_comment',
+            'improvement_comment',
             'created_at',
         ]
         read_only_fields = ['created_at', 'organization']
@@ -241,6 +245,7 @@ class VolunteerReviewSerializer(serializers.ModelSerializer):
 
 class OrganizationReviewSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(min_value=1, max_value=5)
+    event_details = EventSummarySerializer(source='event', read_only=True)
 
     class Meta:
         model = OrganizationReview
@@ -249,9 +254,11 @@ class OrganizationReviewSerializer(serializers.ModelSerializer):
             'organization',
             'volunteer',
             'event',
+            'event_details',
             'rating',
             'positive_comment',
             'negative_comment',
+            'improvement_comment',
             'created_at',
         ]
         read_only_fields = ['created_at', 'volunteer']
@@ -259,6 +266,7 @@ class OrganizationReviewSerializer(serializers.ModelSerializer):
 
 class InitiativeSerializer(serializers.ModelSerializer):
     volunteer = VolunteerSummarySerializer(read_only=True)
+    status_label = serializers.SerializerMethodField()
 
     class Meta:
         model = Initiative
@@ -269,9 +277,13 @@ class InitiativeSerializer(serializers.ModelSerializer):
             'description',
             'image',
             'status',
+            'status_label',
             'created_at',
             'updated_at',
         ]
+
+    def get_status_label(self, obj):
+        return obj.get_status_display()
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -368,3 +380,23 @@ class MeSerializer(serializers.ModelSerializer):
             organization = Organization.objects.filter(user=obj).first()
             return OrganizationMeSerializer(organization).data if organization else None
         return None
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    is_read = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notification
+        fields = [
+            'id',
+            'notification_type',
+            'title',
+            'message',
+            'link',
+            'created_at',
+            'read_at',
+            'is_read',
+        ]
+
+    def get_is_read(self, obj):
+        return obj.is_read

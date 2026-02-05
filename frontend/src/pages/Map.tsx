@@ -88,6 +88,7 @@ export function Map() {
               <div>${event.location}</div>
             </div>
           `,
+          balloonContentFooter: `<a href="/events/${event.id}">Подробнее</a>`,
           hintContent: event.title,
         },
         {
