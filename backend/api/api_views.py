@@ -203,8 +203,8 @@ class EventViewSet(viewsets.ModelViewSet):
         create_notification(
             user=event.organization.user,
             notification_type='application_created',
-            title='Новая заявка на мероприятие',
-            message=f'{volunteer.user.username} подал(а) заявку на "{event.title}".',
+            title='Поступила новая заявка',
+            message=f'Волонтёр {volunteer.user.username} откликнулся на "{event.title}".',
             link=f'/events/{event.id}',
         )
 
@@ -378,11 +378,8 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         create_notification(
             user=application.volunteer.user,
             notification_type=notification_type,
-            title='Статус заявки изменён',
-            message=(
-                f'Ваша заявка на "{application.event.title}" получила статус: '
-                f'{application.get_status_display().lower()}.'
-            ),
+            title='Ответ по вашей заявке',
+            message=f'"{application.event.title}": {application.get_status_display().lower()}.',
             link=f'/events/{application.event.id}',
         )
 
@@ -494,8 +491,8 @@ class VolunteerReviewView(generics.ListCreateAPIView):
         create_notification(
             user=volunteer.user,
             notification_type='review_received',
-            title='Новый отзыв от организации',
-            message=f'Вы получили отзыв по мероприятию "{event.title}".',
+            title='Новый отзыв о вашей работе',
+            message=f'Отзыв получен после участия в "{event.title}".',
             link='/profile?tab=reviews',
         )
         return review
@@ -542,8 +539,8 @@ class OrganizationReviewView(generics.ListCreateAPIView):
         create_notification(
             user=organization.user,
             notification_type='review_received',
-            title='Новый отзыв о вашей организации',
-            message=f'Получен отзыв по мероприятию "{event.title}".',
+            title='Новый отзыв об организации',
+            message=f'Отзыв оставлен после "{event.title}".',
             link='/profile?tab=reviews',
         )
         return review
