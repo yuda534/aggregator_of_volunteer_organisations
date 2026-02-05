@@ -24,6 +24,7 @@ export function Notifications() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   const groupedNotifications = useMemo(() => {
     const today = new Date();
@@ -59,9 +60,29 @@ export function Notifications() {
     }
   };
 
+  const handleReadAll = async () => {
+    if (notifications.length === 0) return;
+    try {
+      setIsMarkingAll(true);
+      await Promise.all(notifications.map((item) => markNotificationRead(item.id)));
+      setNotifications([]);
+    } catch {
+      setError('Не удалось отметить все уведомления как прочитанные.');
+    } finally {
+      setIsMarkingAll(false);
+    }
+  };
+
   return (
     <div className="container py-12 space-y-8">
-      <SectionHeader title="Уведомления" subtitle="Новые события и действия по вашим заявкам." />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <SectionHeader title="Уведомления" subtitle="Новые события и действия по вашим заявкам." />
+        {notifications.length > 0 && (
+          <Button variant="outline" onClick={handleReadAll} disabled={isMarkingAll}>
+            {isMarkingAll ? 'Отмечаем...' : 'Прочитано всё'}
+          </Button>
+        )}
+      </div>
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
