@@ -66,11 +66,10 @@ export function EventDetail() {
 
   const canVolunteerApply =
     user?.user_type === 'volunteer' &&
-    !myApplication &&
     event?.status === 'active' &&
     !!event &&
     event.approved_count < event.required_volunteers &&
-    new Date(event.end_date) > new Date();
+    new Date(event.start_date) > new Date();
 
   const canVolunteerReview =
     user?.user_type === 'volunteer' &&
@@ -208,10 +207,18 @@ export function EventDetail() {
             </div>
             <Badge variant="muted">{event.status_label || event.status}</Badge>
 
-            {canVolunteerApply && (
-              <Button className="w-full" onClick={handleApply}>
-                Подать заявку
-              </Button>
+            {user?.user_type === 'volunteer' && (
+              <>
+                {!myApplication ? (
+                  <Button className="w-full" onClick={handleApply} disabled={!canVolunteerApply}>
+                    {canVolunteerApply ? 'Подать заявку' : 'Набор закрыт'}
+                  </Button>
+                ) : (
+                  <Button className="w-full" variant="secondary" disabled>
+                    Вы уже подали заявку на это мероприятие
+                  </Button>
+                )}
+              </>
             )}
             {myApplication &&
               !(myApplication.status === 'pending' && new Date(event.end_date) < new Date()) && (
@@ -298,18 +305,22 @@ export function EventDetail() {
                     </div>
                   )}
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleStatusChange(application.id, 'approved')}
-                    >
-                      Одобрить
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleStatusChange(application.id, 'rejected')}
-                    >
-                      Отклонить
-                    </Button>
+                    {application.status === 'pending' && (
+                      <>
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleStatusChange(application.id, 'approved')}
+                        >
+                          Одобрить
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleStatusChange(application.id, 'rejected')}
+                        >
+                          Отклонить
+                        </Button>
+                      </>
+                    )}
                     {event && new Date(event.end_date) < new Date() && application.status === 'approved' && (
                       <Dialog
                         open={volunteerReviewTarget?.id === application.id}

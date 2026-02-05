@@ -126,7 +126,7 @@ class Event(models.Model):
         return (
             self.status == 'active'
             and self.approved_count < self.required_volunteers
-            and now < self.end_date
+            and now < self.start_date
         )
 
     def is_completed(self):
@@ -160,11 +160,11 @@ class Event(models.Model):
         elif self.status == 'draft':
             return 'Черновик'
         elif self.status == 'active':
-            # Для активных проверяем, есть ли свободные места
+            if now >= self.start_date:
+                return 'Набор закрыт'
             if self.approved_count >= self.required_volunteers:
                 return 'Набор закрыт'
-            else:
-                return 'Набор открыт'
+            return 'Набор открыт'
         
         return 'Неизвестно'
 
