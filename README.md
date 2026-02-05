@@ -32,14 +32,17 @@
 В нём уже есть отдельный сервис `scheduler`, который каждые 30 минут запускает:
 - `python manage.py process_no_shows`
 
+Шаблон env для Dokploy: `.env.dokploy.example`.
+Скопируйте и задайте свои значения в настройках проекта Dokploy.
+
 Обязательные env-переменные в Dokploy:
 - `DJANGO_SECRET_KEY`
-- `ALLOWED_HOSTS`
+- `ALLOWED_HOSTS` (домен/домены проекта)
 - `DB_NAME`
 - `DB_USER`
 - `DB_PASSWORD`
-- `CORS_ALLOWED_ORIGINS`
-- `CSRF_TRUSTED_ORIGINS`
-- `VITE_API_URL`
+- `CORS_ALLOWED_ORIGINS` (например `https://example.com`)
+- `CSRF_TRUSTED_ORIGINS` (например `https://example.com`)
+- `VITE_API_URL` (например `https://example.com/api/v1`)
 - `VITE_YANDEX_MAPS_API_KEY` (опционально)
 - `YANDEX_MAPS_API_KEY` (опционально)
