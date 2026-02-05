@@ -63,7 +63,8 @@ export function Navbar() {
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <MapPin className="h-4 w-4" />
           </span>
-          Go2Help
+          <span className="hidden sm:inline">Go2Help</span>
+          <span className="text-base sm:hidden">G2H</span>
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex">
@@ -80,7 +81,7 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Меню">
@@ -140,10 +141,17 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Button variant="ghost" asChild>
+              <Button
+                variant="ghost"
+                asChild
+                className="h-9 px-3 text-xs sm:h-11 sm:px-6 sm:text-sm"
+              >
                 <Link to="/login">Войти</Link>
               </Button>
-              <Button asChild>
+              <Button
+                asChild
+                className="h-9 px-3 text-xs sm:h-11 sm:px-6 sm:text-sm"
+              >
                 <Link to="/register">Регистрация</Link>
               </Button>
             </>
