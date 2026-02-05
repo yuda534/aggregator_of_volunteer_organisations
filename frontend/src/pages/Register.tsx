@@ -84,7 +84,7 @@ export function Register() {
   };
 
   return (
-    <div className="container py-16 max-w-2xl">
+    <div className="container py-12 sm:py-16 max-w-2xl">
       <SectionHeader title="Регистрация" subtitle="Создайте профиль волонтёра или организации." />
       <Card>
         <CardHeader>
@@ -212,13 +212,15 @@ export function Register() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
               {isLoading ? 'Регистрация...' : 'Создать аккаунт'}
             </Button>
           </form>
-          <p className="text-sm text-muted-foreground">
-            Уже есть аккаунт? <Link to="/login" className="text-primary">Войти</Link>
-          </p>
+          <div className="pb-2">
+            <p className="text-sm text-muted-foreground">
+              Уже есть аккаунт? <Link to="/login" className="text-primary">Войти</Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
