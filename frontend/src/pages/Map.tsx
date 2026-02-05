@@ -136,7 +136,7 @@ export function Map() {
 
       <Card>
         <CardHeader>
-          <CardTitle>События на карте</CardTitle>
+          <CardTitle>Мероприятия на карте</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {events.length === 0 && (

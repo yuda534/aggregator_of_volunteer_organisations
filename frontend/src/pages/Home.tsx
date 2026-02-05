@@ -47,7 +47,7 @@ export function Home() {
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg">
                   <Link to="/events">
-                    Смотреть события <ArrowRight className="h-4 w-4" />
+                    Смотреть мероприятия <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button variant="outline" asChild size="lg">

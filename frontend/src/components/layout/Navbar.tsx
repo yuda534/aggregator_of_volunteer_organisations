@@ -1,4 +1,4 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Bell, LogOut, MapPin, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -26,6 +26,7 @@ const navLinks = [
 export function Navbar() {
   const { user, logout } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const location = useLocation();
 
   useEffect(() => {
     if (!user) {
@@ -35,7 +36,7 @@ export function Navbar() {
     getNotifications('unread')
       .then((items) => setUnreadCount(items.length))
       .catch(() => setUnreadCount(0));
-  }, [user]);
+  }, [user, location.pathname]);
 
   const avatarSrc = useMemo(() => {
     if (!user) return undefined;
