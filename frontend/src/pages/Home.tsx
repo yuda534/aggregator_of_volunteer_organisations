@@ -4,23 +4,32 @@ import { ArrowRight, CalendarDays, Sparkles } from 'lucide-react';
 
 import { getEvents } from '@/api/events';
 import { getInitiatives } from '@/api/initiatives';
-import type { Event, Initiative } from '@/api/types';
+import { getVolunteers } from '@/api/volunteers';
+import type { Event, Initiative, VolunteerDetail } from '@/api/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/common/SectionHeader';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Home() {
   const { user } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [initiatives, setInitiatives] = useState<Initiative[]>([]);
+  const [volunteers, setVolunteers] = useState<VolunteerDetail[]>([]);
 
   useEffect(() => {
+    if (user?.user_type === 'organization') {
+      getVolunteers()
+        .then((data) => setVolunteers(data.slice(0, 3)))
+        .catch(() => setVolunteers([]));
+      return;
+    }
     getEvents({ status: 'active' })
       .then((data) => setEvents(data.slice(0, 3)))
       .catch(() => setEvents([]));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     getInitiatives()
@@ -86,29 +95,59 @@ export function Home() {
         </div>
       </section>
 
-      <section className="container py-12 md:py-16 space-y-8">
-        <SectionHeader title="Актуальные мероприятия" subtitle="Найдите ближайшее событие и присоединяйтесь." />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {events.map((event) => (
-            <Card key={event.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle>{event.title}</CardTitle>
-                <Badge variant="muted">{event.status_label || event.status}</Badge>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-muted-foreground">
-                <p>{event.description.slice(0, 120)}...</p>
-                <div className="flex items-center gap-2 text-xs">
-                  <CalendarDays className="h-4 w-4" />
-                  {new Date(event.start_date).toLocaleDateString()}
-                </div>
-                <Button asChild className="mt-2 w-full">
-                  <Link to={`/events/${event.id}`}>Подробнее</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {user?.user_type === 'organization' ? (
+        <section className="container py-12 md:py-16 space-y-8">
+          <SectionHeader title="Волонтёры" subtitle="Подберите волонтёров для будущих мероприятий." />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {volunteers.map((volunteer) => (
+              <Card key={volunteer.id} className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={volunteer.user.avatar || undefined} alt={volunteer.user.username} />
+                      <AvatarFallback>
+                        {(volunteer.user.first_name || volunteer.user.username).slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {volunteer.user.username}
+                  </CardTitle>
+                  <Badge variant="muted">Рейтинг: {volunteer.rating}</Badge>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p>{volunteer.skills || 'Навыки пока не заполнены.'}</p>
+                  <Button asChild className="mt-2 w-full">
+                    <Link to={`/volunteers/${volunteer.id}`}>Подробнее</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="container py-12 md:py-16 space-y-8">
+          <SectionHeader title="Актуальные мероприятия" subtitle="Найдите ближайшее событие и присоединяйтесь." />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {events.map((event) => (
+              <Card key={event.id} className="flex flex-col">
+                <CardHeader>
+                  <CardTitle>{event.title}</CardTitle>
+                  <Badge variant="muted">{event.status_label || event.status}</Badge>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm text-muted-foreground">
+                  <p>{event.description.slice(0, 120)}...</p>
+                  <div className="flex items-center gap-2 text-xs">
+                    <CalendarDays className="h-4 w-4" />
+                    {new Date(event.start_date).toLocaleDateString()}
+                  </div>
+                  <Button asChild className="mt-2 w-full">
+                    <Link to={`/events/${event.id}`}>Подробнее</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="bg-muted/40">
         <div className="container py-12 md:py-16 space-y-8">

@@ -12,6 +12,11 @@ export async function getInitiatives(filters: { volunteer?: number } = {}) {
   return response.data;
 }
 
+export async function getInitiative(id: number) {
+  const response = await api.get<Initiative>(`/initiatives/${id}/`);
+  return response.data;
+}
+
 export async function createInitiative(payload: InitiativePayload) {
   const response = await api.post<Initiative>('/initiatives/', payload);
   return response.data;

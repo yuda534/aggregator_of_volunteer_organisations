@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import { createInitiative, getInitiatives } from '@/api/initiatives';
 import type { Initiative } from '@/api/types';
@@ -21,6 +22,11 @@ export function Initiatives() {
       .then(setInitiatives)
       .catch(() => setInitiatives([]));
   }, []);
+
+  const visibleInitiatives = useMemo(
+    () => initiatives.filter((initiative) => initiative.status !== 'cancelled'),
+    [initiatives]
+  );
 
   const handleCreate = async () => {
     if (!title || !description) return;
@@ -56,7 +62,7 @@ export function Initiatives() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {initiatives.map((initiative) => (
+        {visibleInitiatives.map((initiative) => (
           <Card key={initiative.id}>
             <CardHeader>
               <CardTitle>{initiative.title}</CardTitle>
@@ -64,6 +70,9 @@ export function Initiatives() {
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
               {initiative.description.slice(0, 160)}...
+              <Button asChild variant="outline" className="mt-3 w-full">
+                <Link to={`/initiatives/${initiative.id}`}>Подробнее</Link>
+              </Button>
             </CardContent>
           </Card>
         ))}

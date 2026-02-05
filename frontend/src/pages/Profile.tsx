@@ -183,6 +183,11 @@ export function Profile() {
     setEditingInitiative(null);
   };
 
+  const handleInitiativeCancel = async (initiative: Initiative) => {
+    const updated = await updateInitiative(initiative.id, { status: 'cancelled' });
+    setInitiatives((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+  };
+
   const handleInitiativeDelete = async (initiativeId: number) => {
     await deleteInitiative(initiativeId);
     setInitiatives((prev) => prev.filter((item) => item.id !== initiativeId));
@@ -297,7 +302,7 @@ export function Profile() {
                   <Input
                     value={formState.contact_email || ''}
                     onChange={(event) => handleChange('contact_email', event.target.value)}
-                    placeholder="Email для связи"
+                    placeholder="Почта для связи"
                   />
                   <Input
                     value={formState.address || ''}
@@ -335,7 +340,9 @@ export function Profile() {
             {applications.map((application) => (
               <Card key={application.id}>
                 <CardContent className="p-5 space-y-2">
-                  <Badge variant="secondary">{applicationStatusLabel[application.status]}</Badge>
+                  {!(application.status === 'pending' && new Date(application.event.end_date) < new Date()) && (
+                    <Badge variant="secondary">{applicationStatusLabel[application.status]}</Badge>
+                  )}
                   <p className="font-semibold">{application.event.title}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <CalendarDays className="h-4 w-4" />
@@ -362,7 +369,7 @@ export function Profile() {
                       <Badge variant="secondary">{initiative.status_label || initiative.status}</Badge>
                       <p className="font-semibold">{initiative.title}</p>
                       <p className="text-sm text-muted-foreground">{initiative.description}</p>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Dialog
                           open={editingInitiative?.id === initiative.id}
                           onOpenChange={(open) => (open ? openInitiativeEdit(initiative) : setEditingInitiative(null))}
@@ -410,6 +417,14 @@ export function Profile() {
                             </div>
                           </DialogContent>
                         </Dialog>
+                        {initiative.status !== 'cancelled' && (
+                          <Button
+                            variant="secondary"
+                            onClick={() => handleInitiativeCancel(initiative)}
+                          >
+                            Отменить
+                          </Button>
+                        )}
                         <Button
                           variant="destructive"
                           onClick={() => handleInitiativeDelete(initiative.id)}

@@ -147,7 +147,19 @@ class EventViewSet(viewsets.ModelViewSet):
             )
 
         if status_filter:
-            queryset = queryset.filter(status=status_filter)
+            now = timezone.now()
+            if status_filter == 'active':
+                queryset = queryset.filter(
+                    status='active',
+                    start_date__gt=now,
+                    approved_applications__lt=F('required_volunteers'),
+                )
+            elif status_filter == 'completed':
+                queryset = queryset.filter(
+                    Q(status='completed') | Q(end_date__lt=now)
+                ).exclude(status='cancelled')
+            else:
+                queryset = queryset.filter(status=status_filter)
 
         if org_id:
             queryset = queryset.filter(organization_id=org_id)
@@ -218,6 +230,11 @@ class EventViewSet(viewsets.ModelViewSet):
         event = self.get_object()
         if event.organization.user != request.user:
             raise PermissionDenied('Нельзя отменять чужое мероприятие.')
+        now = timezone.now()
+        if event.status != 'active':
+            raise ValidationError('Отменять можно только активные мероприятия.')
+        if event.start_date <= now:
+            raise ValidationError('Нельзя отменить мероприятие, которое уже началось.')
         if event.status in ['completed', 'cancelled']:
             raise ValidationError('Мероприятие уже завершено или отменено.')
 
@@ -486,6 +503,8 @@ class VolunteerReviewView(generics.ListCreateAPIView):
         ).exists()
         if not approved:
             raise ValidationError('Нельзя оставить отзыв: волонтёр не был одобрен.')
+        if event.end_date >= timezone.now():
+            raise ValidationError('Отзыв можно оставить только после завершения мероприятия.')
 
         review = serializer.save(organization=organization)
         create_notification(
@@ -526,6 +545,8 @@ class OrganizationReviewView(generics.ListCreateAPIView):
         organization = serializer.validated_data['organization']
         if event.organization != organization:
             raise ValidationError('Организация не совпадает с мероприятием.')
+        if event.end_date >= timezone.now():
+            raise ValidationError('Отзыв можно оставить только после завершения мероприятия.')
 
         approved = VolunteerApplication.objects.filter(
             event=event,

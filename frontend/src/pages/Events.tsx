@@ -14,12 +14,12 @@ import { SectionHeader } from '@/components/common/SectionHeader';
 export function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<string>('all');
+  const [status, setStatus] = useState<string>('active');
 
   useEffect(() => {
     const filters: { search?: string; status?: string } = {};
     if (search) filters.search = search;
-    if (status !== 'all') filters.status = status;
+    if (status) filters.status = status;
     getEvents(filters)
       .then(setEvents)
       .catch(() => setEvents([]));
@@ -44,11 +44,8 @@ export function Events() {
             <SelectValue placeholder="Статус" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Все</SelectItem>
             <SelectItem value="active">Активные</SelectItem>
-            <SelectItem value="draft">Черновики</SelectItem>
             <SelectItem value="completed">Завершённые</SelectItem>
-            <SelectItem value="cancelled">Отменённые</SelectItem>
           </SelectContent>
         </Select>
       </div>

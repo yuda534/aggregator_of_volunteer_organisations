@@ -126,7 +126,7 @@ class Event(models.Model):
         return (
             self.status == 'active'
             and self.approved_count < self.required_volunteers
-            and now < self.start_date
+            and now < self.end_date
         )
 
     def is_completed(self):

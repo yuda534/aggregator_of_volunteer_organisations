@@ -70,13 +70,18 @@ export function EventDetail() {
     event?.status === 'active' &&
     !!event &&
     event.approved_count < event.required_volunteers &&
-    new Date(event.start_date) > new Date();
+    new Date(event.end_date) > new Date();
 
   const canVolunteerReview =
     user?.user_type === 'volunteer' &&
     myApplication?.status === 'approved' &&
     event &&
     new Date(event.end_date) < new Date();
+
+  const canOrganizationCancel =
+    isOrganizationOwner &&
+    event?.status === 'active' &&
+    new Date(event.start_date) > new Date();
 
   const handleApply = async () => {
     if (!event) return;
@@ -208,7 +213,8 @@ export function EventDetail() {
                 Подать заявку
               </Button>
             )}
-            {myApplication && (
+            {myApplication &&
+              !(myApplication.status === 'pending' && new Date(event.end_date) < new Date()) && (
               <div className="rounded-2xl bg-muted px-4 py-3 text-sm">
                 Ваша заявка: <strong>{statusLabel[myApplication.status]}</strong>
               </div>
@@ -242,7 +248,7 @@ export function EventDetail() {
               </CardContent>
             </Card>
           ))}
-          {isOrganizationOwner && (
+          {canOrganizationCancel && (
             <Button variant="destructive" className="w-full" onClick={handleCancelEvent}>
               Отменить мероприятие
             </Button>
@@ -304,44 +310,49 @@ export function EventDetail() {
                     >
                       Отклонить
                     </Button>
-                    <Dialog open={volunteerReviewTarget?.id === application.id} onOpenChange={(open) => {
-                      setVolunteerReviewTarget(open ? application : null);
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost">Отзыв</Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Отзыв о волонтёре</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-3">
-                          <Input
-                            type="number"
-                            min={1}
-                            max={5}
-                            value={reviewRating}
-                            onChange={(e) => setReviewRating(e.target.value)}
-                            placeholder="Оценка (1-5)"
-                          />
-                          <Textarea
-                            value={reviewPositive}
-                            onChange={(e) => setReviewPositive(e.target.value)}
-                            placeholder="Что понравилось"
-                          />
-                          <Textarea
-                            value={reviewNegative}
-                            onChange={(e) => setReviewNegative(e.target.value)}
-                            placeholder="Что не понравилось"
-                          />
-                          <Textarea
-                            value={reviewImprovement}
-                            onChange={(e) => setReviewImprovement(e.target.value)}
-                            placeholder="Что можно улучшить"
-                          />
-                          <Button onClick={handleVolunteerReview}>Отправить</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    {event && new Date(event.end_date) < new Date() && application.status === 'approved' && (
+                      <Dialog
+                        open={volunteerReviewTarget?.id === application.id}
+                        onOpenChange={(open) => {
+                          setVolunteerReviewTarget(open ? application : null);
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button variant="ghost">Отзыв</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Отзыв о волонтёре</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-3">
+                            <Input
+                              type="number"
+                              min={1}
+                              max={5}
+                              value={reviewRating}
+                              onChange={(e) => setReviewRating(e.target.value)}
+                              placeholder="Оценка (1-5)"
+                            />
+                            <Textarea
+                              value={reviewPositive}
+                              onChange={(e) => setReviewPositive(e.target.value)}
+                              placeholder="Что понравилось"
+                            />
+                            <Textarea
+                              value={reviewNegative}
+                              onChange={(e) => setReviewNegative(e.target.value)}
+                              placeholder="Что не понравилось"
+                            />
+                            <Textarea
+                              value={reviewImprovement}
+                              onChange={(e) => setReviewImprovement(e.target.value)}
+                              placeholder="Что можно улучшить"
+                            />
+                            <Button onClick={handleVolunteerReview}>Отправить</Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </div>
                 </CardContent>
               </Card>

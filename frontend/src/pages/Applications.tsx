@@ -86,7 +86,9 @@ export function Applications() {
         {applications.map((application) => (
           <Card key={application.id}>
             <CardContent className="p-5 space-y-2">
-              <Badge variant="secondary">{statusLabel[application.status]}</Badge>
+              {!(application.status === 'pending' && new Date(application.event.end_date) < new Date()) && (
+                <Badge variant="secondary">{statusLabel[application.status]}</Badge>
+              )}
               <p className="font-semibold">{application.event.title}</p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CalendarDays className="h-4 w-4" />

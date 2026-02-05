@@ -102,7 +102,7 @@ export function Register() {
               <Input
                 value={form.email}
                 onChange={(event) => handleChange('email', event.target.value)}
-                placeholder="Email"
+                placeholder="Почта"
                 disabled={isLoading}
               />
               <Input
@@ -189,7 +189,7 @@ export function Register() {
                 <Input
                   value={form.contact_email}
                   onChange={(event) => handleChange('contact_email', event.target.value)}
-                  placeholder="Email для связи"
+                  placeholder="Почта для связи"
                   disabled={isLoading}
                 />
                 <Input

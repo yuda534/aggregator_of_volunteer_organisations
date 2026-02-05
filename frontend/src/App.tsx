@@ -11,6 +11,7 @@ import { OrganizationDetail } from '@/pages/OrganizationDetail';
 import { Volunteers } from '@/pages/Volunteers';
 import { VolunteerDetail } from '@/pages/VolunteerDetail';
 import { Initiatives } from '@/pages/Initiatives';
+import { InitiativeDetail } from '@/pages/InitiativeDetail';
 import { Map } from '@/pages/Map';
 import { Profile } from '@/pages/Profile';
 import { Applications } from '@/pages/Applications';
@@ -34,6 +35,7 @@ export function App() {
             <Route path="volunteers" element={<Volunteers />} />
             <Route path="volunteers/:id" element={<VolunteerDetail />} />
             <Route path="initiatives" element={<Initiatives />} />
+            <Route path="initiatives/:id" element={<InitiativeDetail />} />
             <Route path="map" element={<Map />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
