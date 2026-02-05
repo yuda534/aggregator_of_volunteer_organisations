@@ -41,6 +41,8 @@
 - `DB_NAME`
 - `DB_USER`
 - `DB_PASSWORD`
+- `DB_HOST`
+- `DB_PORT`
 - `CORS_ALLOWED_ORIGINS` (например `https://example.com`)
 - `CSRF_TRUSTED_ORIGINS` (например `https://example.com`)
 - `VITE_API_URL` (например `https://example.com/api/v1`)
