@@ -42,7 +42,7 @@ export function Volunteers() {
         {volunteers.map((volunteer) => (
           <Card key={volunteer.id} className="flex flex-col">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3">
+              <CardTitle className="flex flex-wrap items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={volunteer.user.avatar || undefined} alt={volunteer.user.username} />
                   <AvatarFallback>

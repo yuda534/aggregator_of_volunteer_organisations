@@ -9,8 +9,8 @@ interface SectionHeaderProps {
 export function SectionHeader({ title, subtitle, align = 'left' }: SectionHeaderProps) {
   return (
     <div className={cn('space-y-2', align === 'center' && 'text-center')}>
-      <h2 className="text-2xl font-semibold font-display">{title}</h2>
-      {subtitle ? <p className="text-muted-foreground">{subtitle}</p> : null}
+      <h2 className="text-xl font-semibold font-display sm:text-2xl">{title}</h2>
+      {subtitle ? <p className="text-sm text-muted-foreground sm:text-base">{subtitle}</p> : null}
     </div>
   );
 }

@@ -41,7 +41,7 @@ export function OrganizationDetail() {
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-3">
+            <CardTitle className="flex flex-wrap items-center gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={organization.logo || undefined} alt={organization.name} />
                 <AvatarFallback>{organization.name.slice(0, 2).toUpperCase()}</AvatarFallback>
@@ -50,7 +50,7 @@ export function OrganizationDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">Рейтинг: {organization.rating}</Badge>
               {organization.is_verified && <Badge variant="success">Проверено</Badge>}
             </div>

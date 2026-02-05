@@ -46,7 +46,7 @@ export function Organizations() {
         {organizations.map((org) => (
           <Card key={org.id} className="flex flex-col">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3">
+              <CardTitle className="flex flex-wrap items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={org.logo || undefined} alt={org.name} />
                   <AvatarFallback>{org.name.slice(0, 2).toUpperCase()}</AvatarFallback>

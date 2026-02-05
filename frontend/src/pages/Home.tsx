@@ -46,7 +46,7 @@ export function Home() {
               <Badge variant="secondary" className="rounded-full px-4 py-1 text-sm">
                 Соединяем волонтёров и организации
               </Badge>
-              <h1 className="text-4xl font-display font-semibold leading-tight md:text-5xl">
+              <h1 className="text-3xl font-display font-semibold leading-tight sm:text-4xl md:text-5xl">
                 Делайте добрые дела вместе — быстро находите события и команды рядом.
               </h1>
               <p className="text-lg text-muted-foreground">
@@ -97,7 +97,7 @@ export function Home() {
             {volunteers.map((volunteer) => (
               <Card key={volunteer.id} className="flex flex-col">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-3">
+                  <CardTitle className="flex flex-wrap items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={volunteer.user.avatar || undefined} alt={volunteer.user.username} />
                       <AvatarFallback>

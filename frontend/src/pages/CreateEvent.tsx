@@ -178,7 +178,7 @@ export function CreateEvent() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Название" />
-          <div className="flex gap-2 md:col-span-2">
+          <div className="flex flex-col gap-2 md:col-span-2 sm:flex-row">
             <Input
               value={location}
               onChange={(e) => setLocation(e.target.value)}
@@ -213,7 +213,7 @@ export function CreateEvent() {
             placeholder="Требуемое число волонтёров"
           />
           <div className="md:col-span-2">
-            <div className="h-72 w-full rounded-2xl border bg-muted/30">
+            <div className="h-64 w-full rounded-2xl border bg-muted/30 sm:h-72">
               {isScriptLoaded ? (
                 <div ref={mapRef} className="h-full w-full rounded-2xl" />
               ) : (

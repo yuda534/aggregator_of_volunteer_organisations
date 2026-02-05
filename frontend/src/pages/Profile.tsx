@@ -528,7 +528,7 @@ export function Profile() {
 
         {user.user_type === 'organization' && (
           <TabsContent value="events">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <SectionHeader title="Ваши мероприятия" subtitle="Создавайте и управляйте событиями." />
               <Button asChild>
                 <Link to="/create-event">Создать мероприятие</Link>

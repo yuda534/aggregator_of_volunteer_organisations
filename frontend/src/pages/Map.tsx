@@ -118,7 +118,7 @@ export function Map() {
       )}
 
       <Card>
-        <CardContent className="p-0 h-[560px]">
+        <CardContent className="p-0 h-[420px] sm:h-[480px] md:h-[560px]">
           {!isScriptLoaded ? (
             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
               Загрузка карты...

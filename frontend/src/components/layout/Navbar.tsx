@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Bell, LogOut, MapPin, User } from 'lucide-react';
+import { Bell, LogOut, MapPin, Menu, User } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -81,6 +81,22 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Меню">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel>Разделы</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {navLinks.map((link) => (
+                <DropdownMenuItem key={link.to} asChild>
+                  <Link to={link.to}>{link.label}</Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {user ? (
             <>
               <Button variant="ghost" size="icon" asChild className="relative">

@@ -32,7 +32,7 @@ export function InitiativeDetail() {
       <SectionHeader title={initiative.title} subtitle="Инициатива волонтёра" />
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between gap-3">
+          <CardTitle className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span>Описание</span>
             <Badge variant="secondary">{initiative.status_label || initiative.status}</Badge>
           </CardTitle>

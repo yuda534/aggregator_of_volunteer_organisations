@@ -34,7 +34,7 @@ export function VolunteerDetail() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-3">
+            <CardTitle className="flex flex-wrap items-center gap-3">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={volunteer.user.avatar || undefined} alt={volunteer.user.username} />
                 <AvatarFallback>
