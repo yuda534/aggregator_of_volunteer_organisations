@@ -62,11 +62,6 @@ export function Home() {
                 <Button variant="outline" asChild size="lg">
                   <Link to="/organizations">Найти организацию</Link>
                 </Button>
-                {user && (
-                  <Button variant="secondary" asChild size="lg">
-                    <Link to="/notifications">Уведомления</Link>
-                  </Button>
-                )}
               </div>
             </div>
             <Card className="border-none bg-background/80 shadow-lg">
@@ -164,6 +159,11 @@ export function Home() {
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
                   {initiative.description.slice(0, 140)}...
+                  {initiative.status !== 'cancelled' && (
+                    <Button asChild variant="outline" className="mt-3 w-full">
+                      <Link to={`/initiatives/${initiative.id}`}>Подробнее</Link>
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}

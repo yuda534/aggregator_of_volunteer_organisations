@@ -151,7 +151,7 @@ class EventViewSet(viewsets.ModelViewSet):
             if status_filter == 'active':
                 queryset = queryset.filter(
                     status='active',
-                    start_date__gt=now,
+                    end_date__gt=now,
                     approved_applications__lt=F('required_volunteers'),
                 )
             elif status_filter == 'completed':
@@ -267,7 +267,6 @@ class EventViewSet(viewsets.ModelViewSet):
             latitude__isnull=False,
             longitude__isnull=False,
             status='active',
-            start_date__gt=now,
             end_date__gt=now,
             approved_applications__lt=F('required_volunteers'),
         ).order_by('start_date')
