@@ -149,8 +149,12 @@ export function EventDetail() {
     if (!myApplication) return;
     try {
       setActionError(null);
+      const previousStatus = myApplication.status;
       const updated = await cancelApplication(myApplication.id);
       setMyApplication(updated);
+      if (event && previousStatus === 'approved') {
+        setEvent({ ...event, approved_count: Math.max(0, event.approved_count - 1) });
+      }
     } catch (err: any) {
       setActionError(
         err?.response?.data?.detail ||

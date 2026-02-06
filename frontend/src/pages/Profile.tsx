@@ -26,7 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AvatarPreview } from '@/components/common/AvatarPreview';
 import { cn } from '@/lib/utils';
 
 export function Profile() {
@@ -312,10 +312,13 @@ export function Profile() {
   return (
     <div className="container py-12 space-y-8">
       <div className="flex flex-wrap items-center gap-3">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={avatarSrc} alt={user.username} />
-          <AvatarFallback>{avatarFallback}</AvatarFallback>
-        </Avatar>
+        <AvatarPreview
+          src={avatarSrc}
+          alt={user.username}
+          fallback={avatarFallback}
+          title={user.user_type === 'organization' ? 'Логотип организации' : 'Аватар волонтёра'}
+          className="h-12 w-12"
+        />
         <div>
           <SectionHeader title={title} subtitle={`Пользователь: ${user.username}`} />
         </div>
