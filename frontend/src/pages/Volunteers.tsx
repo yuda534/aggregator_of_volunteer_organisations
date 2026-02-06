@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AvatarPreview } from '@/components/common/AvatarPreview';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Volunteers() {
   const [volunteers, setVolunteers] = useState<VolunteerDetail[]>([]);
@@ -43,13 +43,12 @@ export function Volunteers() {
           <Card key={volunteer.id} className="flex flex-col">
             <CardHeader>
               <CardTitle className="flex flex-wrap items-center gap-3">
-                <AvatarPreview
-                  src={volunteer.user.avatar || undefined}
-                  alt={volunteer.user.username}
-                  fallback={(volunteer.user.first_name || volunteer.user.username).slice(0, 2).toUpperCase()}
-                  title={`Аватар волонтёра ${volunteer.user.username}`}
-                  className="h-10 w-10"
-                />
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={volunteer.user.avatar || undefined} alt={volunteer.user.username} />
+                  <AvatarFallback>
+                    {(volunteer.user.first_name || volunteer.user.username).slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 {volunteer.user.username}
               </CardTitle>
               <div className="flex flex-wrap gap-2">
