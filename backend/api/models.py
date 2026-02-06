@@ -202,7 +202,8 @@ class VolunteerApplication(models.Model):
     def can_be_cancelled_by_volunteer(self):
         if self.status not in {'pending', 'approved'}:
             return False
-        return timezone.now() <= (self.event.start_date - timedelta(hours=24))
+        # Only allow cancelling if there is strictly more than 24 hours until the event starts.
+        return timezone.now() < (self.event.start_date - timedelta(hours=24))
 
 
 # ======================================================
