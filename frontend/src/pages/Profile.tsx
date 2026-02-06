@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CalendarDays } from 'lucide-react';
 
@@ -26,6 +26,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 export function Profile() {
   const { user, updateProfile } = useAuth();
@@ -44,12 +46,13 @@ export function Profile() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const initialFormRef = useRef<Record<string, string>>({});
 
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
 
   useEffect(() => {
     if (!user) return;
-    setFormState({
+    const snapshot = {
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       phone: user.phone || '',
@@ -62,7 +65,9 @@ export function Profile() {
       website: 'website' in (user.profile || {}) ? (user.profile?.website as string) || '' : '',
       contact_email: 'contact_email' in (user.profile || {}) ? (user.profile?.contact_email as string) || '' : '',
       address: 'address' in (user.profile || {}) ? (user.profile?.address as string) || '' : '',
-    });
+    };
+    setFormState(snapshot);
+    initialFormRef.current = snapshot;
   }, [user]);
 
   useEffect(() => {
@@ -184,6 +189,7 @@ export function Profile() {
     await updateProfile(payload);
     setAvatarFile(null);
     setLogoFile(null);
+    initialFormRef.current = { ...formState };
     setSaveMessage('Изменения сохранены');
   };
 
@@ -256,6 +262,45 @@ export function Profile() {
     return user.user_type === 'volunteer' ? volunteerReviews.length : organizationReviews.length;
   }, [user, volunteerReviews.length, organizationReviews.length]);
 
+  const isDirty = useMemo(() => {
+    const initial = initialFormRef.current;
+    const changed = Object.keys(initial).some(
+      (key) => (formState[key] ?? '') !== (initial[key] ?? '')
+    );
+    return changed || Boolean(avatarFile || logoFile);
+  }, [formState, avatarFile, logoFile]);
+
+  const isFieldDirty = (field: string) =>
+    (formState[field] ?? '') !== (initialFormRef.current[field] ?? '');
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  const avatarSrc = useMemo(() => {
+    if (!user) return undefined;
+    if (user.user_type === 'organization') {
+      return user.profile && 'logo' in user.profile ? user.profile.logo || undefined : undefined;
+    }
+    return user.avatar || undefined;
+  }, [user]);
+
+  const avatarFallback = useMemo(() => {
+    if (!user) return '';
+    if (user.user_type === 'organization') {
+      const name = user.profile && 'name' in user.profile ? user.profile.name || '' : '';
+      return (name || user.username).slice(0, 2).toUpperCase();
+    }
+    const name = user.first_name || user.username;
+    return name.slice(0, 2).toUpperCase();
+  }, [user]);
+
   if (!user) {
     return (
       <div className="container py-16 text-center text-muted-foreground">
@@ -266,7 +311,15 @@ export function Profile() {
 
   return (
     <div className="container py-12 space-y-8">
-      <SectionHeader title={title} subtitle={`Пользователь: ${user.username}`} />
+      <div className="flex flex-wrap items-center gap-3">
+        <Avatar className="h-12 w-12">
+          <AvatarImage src={avatarSrc} alt={user.username} />
+          <AvatarFallback>{avatarFallback}</AvatarFallback>
+        </Avatar>
+        <div>
+          <SectionHeader title={title} subtitle={`Пользователь: ${user.username}`} />
+        </div>
+      </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList>
@@ -284,6 +337,11 @@ export function Profile() {
             <Badge variant="secondary">Рейтинг: {ratingValue}</Badge>
             <Badge variant="muted">Отзывы: {reviewsCount}</Badge>
           </div>
+          {isDirty && (
+            <Alert className="border-primary/30 bg-primary/10 text-foreground">
+              <AlertDescription>Есть не сохранённые изменения.</AlertDescription>
+            </Alert>
+          )}
           {saveMessage && (
             <Alert>
               <AlertDescription>{saveMessage}</AlertDescription>
@@ -298,31 +356,46 @@ export function Profile() {
                 value={formState.first_name || ''}
                 onChange={(event) => handleChange('first_name', event.target.value)}
                 placeholder="Имя"
-                className="w-full max-w-full"
+                className={cn(
+                  'w-full max-w-full',
+                  isFieldDirty('first_name') && 'border-primary/50 ring-1 ring-primary/30'
+                )}
               />
               <Input
                 value={formState.last_name || ''}
                 onChange={(event) => handleChange('last_name', event.target.value)}
                 placeholder="Фамилия"
-                className="w-full max-w-full"
+                className={cn(
+                  'w-full max-w-full',
+                  isFieldDirty('last_name') && 'border-primary/50 ring-1 ring-primary/30'
+                )}
               />
               <Input
                 value={formState.phone || ''}
                 onChange={(event) => handleChange('phone', event.target.value)}
                 placeholder="Телефон"
-                className="w-full max-w-full"
+                className={cn(
+                  'w-full max-w-full',
+                  isFieldDirty('phone') && 'border-primary/50 ring-1 ring-primary/30'
+                )}
               />
               <Input
                 value={formState.city || ''}
                 onChange={(event) => handleChange('city', event.target.value)}
                 placeholder="Город"
-                className="w-full max-w-full"
+                className={cn(
+                  'w-full max-w-full',
+                  isFieldDirty('city') && 'border-primary/50 ring-1 ring-primary/30'
+                )}
               />
               <Textarea
                 value={formState.bio || ''}
                 onChange={(event) => handleChange('bio', event.target.value)}
                 placeholder="О себе"
-                className="md:col-span-2 w-full max-w-full"
+                className={cn(
+                  'md:col-span-2 w-full max-w-full',
+                  isFieldDirty('bio') && 'border-primary/50 ring-1 ring-primary/30'
+                )}
               />
 
               {user.user_type === 'volunteer' && (
@@ -331,13 +404,19 @@ export function Profile() {
                     value={formState.skills || ''}
                     onChange={(event) => handleChange('skills', event.target.value)}
                     placeholder="Навыки"
-                    className="w-full max-w-full"
+                    className={cn(
+                      'w-full max-w-full',
+                      isFieldDirty('skills') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <Input
                     value={formState.experience || ''}
                     onChange={(event) => handleChange('experience', event.target.value)}
                     placeholder="Опыт"
-                    className="w-full max-w-full"
+                    className={cn(
+                      'w-full max-w-full',
+                      isFieldDirty('experience') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <div className="md:col-span-2 space-y-2">
                     <p className="text-sm text-muted-foreground">Аватар волонтёра</p>
@@ -358,7 +437,7 @@ export function Profile() {
                       >
                         Выберите файл
                       </label>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground pl-2 sm:pl-0">
                         {avatarFile ? avatarFile.name : 'Файл не выбран'}
                       </span>
                     </div>
@@ -372,31 +451,46 @@ export function Profile() {
                     value={formState.name || ''}
                     onChange={(event) => handleChange('name', event.target.value)}
                     placeholder="Название организации"
-                    className="w-full max-w-full"
+                    className={cn(
+                      'w-full max-w-full',
+                      isFieldDirty('name') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <Input
                     value={formState.website || ''}
                     onChange={(event) => handleChange('website', event.target.value)}
                     placeholder="Сайт"
-                    className="w-full max-w-full"
+                    className={cn(
+                      'w-full max-w-full',
+                      isFieldDirty('website') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <Input
                     value={formState.contact_email || ''}
                     onChange={(event) => handleChange('contact_email', event.target.value)}
                     placeholder="Почта для связи"
-                    className="w-full max-w-full"
+                    className={cn(
+                      'w-full max-w-full',
+                      isFieldDirty('contact_email') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <Input
                     value={formState.address || ''}
                     onChange={(event) => handleChange('address', event.target.value)}
                     placeholder="Адрес"
-                    className="md:col-span-2 w-full max-w-full"
+                    className={cn(
+                      'md:col-span-2 w-full max-w-full',
+                      isFieldDirty('address') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <Textarea
                     value={formState.description || ''}
                     onChange={(event) => handleChange('description', event.target.value)}
                     placeholder="Описание"
-                    className="md:col-span-2 w-full max-w-full"
+                    className={cn(
+                      'md:col-span-2 w-full max-w-full',
+                      isFieldDirty('description') && 'border-primary/50 ring-1 ring-primary/30'
+                    )}
                   />
                   <div className="md:col-span-2 space-y-2">
                     <p className="text-sm text-muted-foreground">Логотип организации</p>
@@ -417,7 +511,7 @@ export function Profile() {
                       >
                         Выберите файл
                       </label>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground pl-2 sm:pl-0">
                         {logoFile ? logoFile.name : 'Файл не выбран'}
                       </span>
                     </div>
