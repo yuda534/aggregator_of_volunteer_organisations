@@ -88,7 +88,7 @@ export function Applications() {
             <CardContent className="p-5 space-y-2">
               {application.status === 'cancelled' ? (
                 <div className="rounded-2xl bg-muted px-4 py-2 text-sm">
-                  Вы отменили свою заявку.
+                  Вы отклонили свою заявку.
                 </div>
               ) : (
                 !(application.status === 'pending' && new Date(application.event.end_date) < new Date()) && (

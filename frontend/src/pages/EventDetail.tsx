@@ -219,7 +219,7 @@ export function EventDetail() {
             )}
             {user?.user_type === 'volunteer' && myApplication?.status === 'cancelled' && (
               <div className="rounded-2xl bg-muted px-4 py-3 text-sm">
-                Вы отменили свою заявку.
+                Вы отклонили свою заявку на это мероприятие
               </div>
             )}
             {user?.user_type === 'volunteer' && myApplication && myApplication.status !== 'cancelled' && (

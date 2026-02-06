@@ -412,6 +412,11 @@ class ApplicationViewSet(viewsets.ReadOnlyModelViewSet):
         if not volunteer or application.volunteer_id != volunteer.id:
             raise PermissionDenied('Можно отменять только свои заявки.')
 
+        if application.status == 'rejected':
+            raise ValidationError('Нельзя отменить отклонённую заявку.')
+        if application.status == 'cancelled':
+            raise ValidationError('Заявка уже отменена.')
+
         if not application.can_be_cancelled_by_volunteer():
             deadline = application.event.start_date - timedelta(hours=24)
             raise ValidationError(
