@@ -63,8 +63,14 @@ export function Navbar() {
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <MapPin className="h-4 w-4" />
           </span>
-          <span className="hidden sm:inline">Go2Help</span>
-          <span className="text-base sm:hidden">G2H</span>
+          {user ? (
+            <span className="inline">Go2Help</span>
+          ) : (
+            <>
+              <span className="hidden sm:inline">Go2Help</span>
+              <span className="text-base sm:hidden">G2H</span>
+            </>
+          )}
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex">

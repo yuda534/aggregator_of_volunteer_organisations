@@ -51,6 +51,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 class VolunteerProfileSerializer(serializers.ModelSerializer):
     user = UserPublicSerializer(read_only=True)
+    reviews_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = VolunteerProfile
@@ -61,6 +62,7 @@ class VolunteerProfileSerializer(serializers.ModelSerializer):
             'experience',
             'date_of_birth',
             'rating',
+            'reviews_count',
             'is_active',
             'created_at',
         ]
@@ -83,6 +85,7 @@ class VolunteerProfileMeSerializer(serializers.ModelSerializer):
 
 class OrganizationSerializer(serializers.ModelSerializer):
     user = UserPublicSerializer(read_only=True)
+    reviews_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Organization
@@ -96,6 +99,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'contact_email',
             'address',
             'rating',
+            'reviews_count',
             'is_verified',
             'created_at',
         ]

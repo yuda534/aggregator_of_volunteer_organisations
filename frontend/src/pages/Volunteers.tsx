@@ -51,7 +51,10 @@ export function Volunteers() {
                 </Avatar>
                 {volunteer.user.username}
               </CardTitle>
-              <Badge variant="muted">Рейтинг: {volunteer.rating}</Badge>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="muted">Рейтинг: {volunteer.rating}</Badge>
+                <Badge variant="secondary">Отзывы: {volunteer.reviews_count ?? 0}</Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>{volunteer.skills || 'Навыки пока не заполнены.'}</p>

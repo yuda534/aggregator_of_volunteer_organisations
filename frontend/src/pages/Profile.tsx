@@ -207,6 +207,16 @@ export function Profile() {
     return user.user_type === 'organization' ? 'Профиль организации' : 'Профиль волонтёра';
   }, [user]);
 
+  const ratingValue = useMemo(() => {
+    if (!user || !user.profile) return 0;
+    return 'rating' in user.profile ? Number(user.profile.rating || 0) : 0;
+  }, [user]);
+
+  const reviewsCount = useMemo(() => {
+    if (!user) return 0;
+    return user.user_type === 'volunteer' ? volunteerReviews.length : organizationReviews.length;
+  }, [user, volunteerReviews.length, organizationReviews.length]);
+
   if (!user) {
     return (
       <div className="container py-16 text-center text-muted-foreground">
@@ -231,6 +241,10 @@ export function Profile() {
         </TabsList>
 
         <TabsContent value="profile">
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary">Рейтинг: {ratingValue}</Badge>
+            <Badge variant="muted">Отзывы: {reviewsCount}</Badge>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle>Данные профиля</CardTitle>

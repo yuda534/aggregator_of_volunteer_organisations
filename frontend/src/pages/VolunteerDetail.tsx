@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { getVolunteer } from '@/api/volunteers';
-import type { VolunteerDetail as VolunteerDetailType } from '@/api/types';
+import { getVolunteerReviews } from '@/api/reviews';
+import type { VolunteerDetail as VolunteerDetailType, VolunteerReview } from '@/api/types';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,12 +13,16 @@ export function VolunteerDetail() {
   const { id } = useParams();
   const volunteerId = Number(id);
   const [volunteer, setVolunteer] = useState<VolunteerDetailType | null>(null);
+  const [reviews, setReviews] = useState<VolunteerReview[]>([]);
 
   useEffect(() => {
     if (!volunteerId) return;
     getVolunteer(volunteerId)
       .then(setVolunteer)
       .catch(() => setVolunteer(null));
+    getVolunteerReviews({ volunteer: volunteerId })
+      .then(setReviews)
+      .catch(() => setReviews([]));
   }, [volunteerId]);
 
   if (!volunteer) {
@@ -45,7 +50,10 @@ export function VolunteerDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <Badge variant="secondary">Рейтинг: {volunteer.rating}</Badge>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">Рейтинг: {volunteer.rating}</Badge>
+              <Badge variant="muted">Отзывы: {volunteer.reviews_count ?? reviews.length}</Badge>
+            </div>
             <p>Навыки: {volunteer.skills || 'Нет данных'}</p>
             <p>Опыт: {volunteer.experience || 'Нет данных'}</p>
             {volunteer.user.city && <p>Город: {volunteer.user.city}</p>}
@@ -61,6 +69,34 @@ export function VolunteerDetail() {
           </CardContent>
         </Card>
       </div>
+
+      <section className="space-y-4">
+        <SectionHeader title="Отзывы" subtitle="Мнения организаций о работе волонтёра." />
+        {reviews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет отзывов.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {reviews.map((review) => (
+              <Card key={review.id}>
+                <CardContent className="p-5 space-y-2 text-sm text-muted-foreground">
+                  <Badge variant="secondary">Оценка: {review.rating}</Badge>
+                  {review.event_details && (
+                    <p>Мероприятие: {review.event_details.title}</p>
+                  )}
+                  {review.positive_comment && <p>Что понравилось: {review.positive_comment}</p>}
+                  {review.negative_comment && <p>Что не понравилось: {review.negative_comment}</p>}
+                  {review.improvement_comment && (
+                    <p>Что можно улучшить: {review.improvement_comment}</p>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(review.created_at).toLocaleDateString('ru-RU')}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

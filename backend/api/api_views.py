@@ -200,17 +200,13 @@ class EventViewSet(viewsets.ModelViewSet):
         application = VolunteerApplication.objects.filter(volunteer=volunteer, event=event).first()
         if application:
             if application.status == 'cancelled':
-                application.status = 'pending'
-                application.cancelled_at = None
-                application.no_show_marked = False
-                application.save(update_fields=['status', 'cancelled_at', 'no_show_marked'])
-            else:
-                raise ValidationError('Заявка уже существует.')
-        else:
-            application = VolunteerApplication.objects.create(
-                volunteer=volunteer,
-                event=event,
-            )
+                raise ValidationError('Вы отменили заявку. Повторная подача недоступна.')
+            raise ValidationError('Заявка уже существует.')
+
+        application = VolunteerApplication.objects.create(
+            volunteer=volunteer,
+            event=event,
+        )
 
         create_notification(
             user=event.organization.user,
@@ -279,7 +275,9 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().annotate(
+            reviews_count=Count('organizationreview', distinct=True)
+        )
         search = self.request.query_params.get('search')
         city = self.request.query_params.get('city')
         if search:
@@ -298,7 +296,9 @@ class VolunteerViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().annotate(
+            reviews_count=Count('volunteerreview', distinct=True)
+        )
         search = self.request.query_params.get('search')
         city = self.request.query_params.get('city')
         if search:

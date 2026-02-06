@@ -4,7 +4,8 @@ import { Globe, Mail, MapPin } from 'lucide-react';
 
 import { getOrganization } from '@/api/organizations';
 import { getEvents } from '@/api/events';
-import type { Event, OrganizationDetail as OrgDetail } from '@/api/types';
+import { getOrganizationReviews } from '@/api/reviews';
+import type { Event, OrganizationDetail as OrgDetail, OrganizationReview } from '@/api/types';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ export function OrganizationDetail() {
   const orgId = Number(id);
   const [organization, setOrganization] = useState<OrgDetail | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
+  const [reviews, setReviews] = useState<OrganizationReview[]>([]);
 
   useEffect(() => {
     if (!orgId) return;
@@ -25,6 +27,9 @@ export function OrganizationDetail() {
     getEvents({ organization: orgId })
       .then(setEvents)
       .catch(() => setEvents([]));
+    getOrganizationReviews({ organization: orgId })
+      .then(setReviews)
+      .catch(() => setReviews([]));
   }, [orgId]);
 
   if (!organization) {
@@ -52,6 +57,7 @@ export function OrganizationDetail() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary">Рейтинг: {organization.rating}</Badge>
+              <Badge variant="muted">Отзывы: {organization.reviews_count ?? reviews.length}</Badge>
               {organization.is_verified && <Badge variant="success">Проверено</Badge>}
             </div>
             {organization.website && (
@@ -101,6 +107,34 @@ export function OrganizationDetail() {
             </Card>
           ))}
         </div>
+      </section>
+
+      <section className="space-y-4">
+        <SectionHeader title="Отзывы" subtitle="Что говорят волонтёры об организации." />
+        {reviews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Пока нет отзывов.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {reviews.map((review) => (
+              <Card key={review.id}>
+                <CardContent className="p-5 space-y-2 text-sm text-muted-foreground">
+                  <Badge variant="secondary">Оценка: {review.rating}</Badge>
+                  {review.event_details && (
+                    <p>Мероприятие: {review.event_details.title}</p>
+                  )}
+                  {review.positive_comment && <p>Что понравилось: {review.positive_comment}</p>}
+                  {review.negative_comment && <p>Что не понравилось: {review.negative_comment}</p>}
+                  {review.improvement_comment && (
+                    <p>Что можно улучшить: {review.improvement_comment}</p>
+                  )}
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(review.created_at).toLocaleDateString('ru-RU')}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

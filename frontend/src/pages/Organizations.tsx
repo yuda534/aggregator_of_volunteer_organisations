@@ -53,7 +53,10 @@ export function Organizations() {
                 </Avatar>
                 {org.name}
               </CardTitle>
-              <Badge variant="muted">Рейтинг: {org.rating}</Badge>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="muted">Рейтинг: {org.rating}</Badge>
+                <Badge variant="secondary">Отзывы: {org.reviews_count ?? 0}</Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>{org.description?.slice(0, 140) || 'Описание не заполнено.'}</p>

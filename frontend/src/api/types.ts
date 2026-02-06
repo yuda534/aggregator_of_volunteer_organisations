@@ -32,6 +32,7 @@ export interface OrganizationDetail extends OrganizationPublic {
   address?: string;
   is_verified?: boolean;
   created_at?: string;
+  reviews_count?: number;
 }
 
 export interface VolunteerDetail extends VolunteerPublic {
@@ -39,6 +40,7 @@ export interface VolunteerDetail extends VolunteerPublic {
   experience?: string;
   date_of_birth?: string | null;
   created_at?: string;
+  reviews_count?: number;
 }
 
 export interface EventSummary {

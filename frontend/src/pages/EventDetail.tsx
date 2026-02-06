@@ -164,7 +164,7 @@ export function EventDetail() {
     pending: 'На рассмотрении',
     approved: 'Одобрено',
     rejected: 'Отклонено',
-    cancelled: 'Отменено волонтёром',
+    cancelled: 'Волонтёр отменил заявку',
   };
 
   const stats = useMemo(() => {
@@ -217,29 +217,43 @@ export function EventDetail() {
                 Подать заявку
               </Button>
             )}
-            {user?.user_type === 'volunteer' && myApplication && (
+            {user?.user_type === 'volunteer' && myApplication?.status === 'cancelled' && (
+              <div className="rounded-2xl bg-muted px-4 py-3 text-sm">
+                Вы отменили свою заявку.
+              </div>
+            )}
+            {user?.user_type === 'volunteer' && myApplication && myApplication.status !== 'cancelled' && (
               <Button className="w-full" disabled>
                 Вы уже подали заявку на это мероприятие
               </Button>
             )}
             {myApplication &&
+              myApplication.status !== 'cancelled' &&
               !(myApplication.status === 'pending' && new Date(event.end_date) < new Date()) && (
               <div className="rounded-2xl bg-muted px-4 py-3 text-sm">
                 Ваша заявка: <strong>{statusLabel[myApplication.status]}</strong>
               </div>
             )}
-            {user?.user_type === 'volunteer' && myApplication && (
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={handleCancelParticipation}
-                disabled={!myApplication.can_volunteer_cancel}
-              >
-                {myApplication.can_volunteer_cancel
-                  ? 'Отменить участие'
-                  : 'Отмена недоступна (меньше 24 часов)'}
-              </Button>
-            )}
+            {user?.user_type === 'volunteer' &&
+              myApplication &&
+              myApplication.status !== 'cancelled' &&
+              (myApplication.status === 'pending' || myApplication.status === 'approved') && (
+                <>
+                  {myApplication.can_volunteer_cancel ? (
+                    <Button
+                      variant="secondary"
+                      className="w-full"
+                      onClick={handleCancelParticipation}
+                    >
+                      Отменить участие
+                    </Button>
+                  ) : (
+                    <div className="rounded-2xl bg-muted px-4 py-3 text-sm">
+                      До мероприятия осталось меньше 24 часов, отменить заявку невозможно.
+                    </div>
+                  )}
+                </>
+              )}
             {actionError && (
               <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {actionError}

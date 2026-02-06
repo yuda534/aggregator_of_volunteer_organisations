@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SectionHeader } from '@/components/common/SectionHeader';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function Home() {
   const { user } = useAuth();
@@ -64,6 +65,14 @@ export function Home() {
                 Платформа помогает организациям собирать команды, а волонтёрам — находить
                 значимые мероприятия и инициативы в своём городе.
               </p>
+              {!user && (
+                <Alert>
+                  <AlertDescription>
+                    Зарегистрируйтесь или войдите в аккаунт, чтобы пользоваться всем функционалом
+                    Go2Help.
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg">
                   <Link to={heroPrimaryLink.to}>

@@ -86,28 +86,40 @@ export function Applications() {
         {applications.map((application) => (
           <Card key={application.id}>
             <CardContent className="p-5 space-y-2">
-              {!(application.status === 'pending' && new Date(application.event.end_date) < new Date()) && (
-                <Badge variant="secondary">{statusLabel[application.status]}</Badge>
+              {application.status === 'cancelled' ? (
+                <div className="rounded-2xl bg-muted px-4 py-2 text-sm">
+                  Вы отменили свою заявку.
+                </div>
+              ) : (
+                !(application.status === 'pending' && new Date(application.event.end_date) < new Date()) && (
+                  <Badge variant="secondary">{statusLabel[application.status]}</Badge>
+                )
               )}
               <p className="font-semibold">{application.event.title}</p>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <CalendarDays className="h-4 w-4" />
                 {new Date(application.event.start_date).toLocaleDateString()}
               </div>
-              {user?.user_type === 'volunteer' && (
-                <Button
-                  variant="secondary"
-                  className="w-full"
-                  onClick={() => handleCancel(application.id)}
-                  disabled={!application.can_volunteer_cancel || isCancellingId === application.id}
-                >
-                  {isCancellingId === application.id
-                    ? 'Отмена...'
-                    : application.can_volunteer_cancel
-                      ? 'Отменить участие'
-                      : 'Отмена недоступна (меньше 24 часов)'}
-                </Button>
-              )}
+              {user?.user_type === 'volunteer' &&
+                application.status !== 'cancelled' &&
+                (application.status === 'pending' || application.status === 'approved') && (
+                  <>
+                    {application.can_volunteer_cancel ? (
+                      <Button
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => handleCancel(application.id)}
+                        disabled={isCancellingId === application.id}
+                      >
+                        {isCancellingId === application.id ? 'Отмена...' : 'Отменить участие'}
+                      </Button>
+                    ) : (
+                      <div className="rounded-2xl bg-muted px-4 py-2 text-sm">
+                        До мероприятия осталось меньше 24 часов, отменить заявку невозможно.
+                      </div>
+                    )}
+                  </>
+                )}
               {user?.user_type === 'volunteer' &&
                 application.status === 'approved' &&
                 new Date(application.event.start_date) <= new Date() && (
