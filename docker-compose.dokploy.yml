@@ -46,8 +46,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     restart: unless-stopped
-    entrypoint: ["/bin/sh", "-c"]
-    command: "while true; do python manage.py process_no_shows; sleep 1800; done"
+    command: ["sh", "/app/backend/scheduler.sh"]
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_DEBUG: "False"
