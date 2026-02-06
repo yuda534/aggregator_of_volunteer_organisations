@@ -25,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function Profile() {
   const { user, updateProfile } = useAuth();
@@ -42,6 +43,7 @@ export function Profile() {
   const [formState, setFormState] = useState<Record<string, string>>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'profile');
 
@@ -108,6 +110,7 @@ export function Profile() {
 
   const handleChange = (field: string, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }));
+    setSaveMessage(null);
   };
 
   const handleTabChange = (value: string) => {
@@ -121,6 +124,39 @@ export function Profile() {
 
   const handleSave = async () => {
     if (!user) return;
+    const currentValues: Record<string, string> = {
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      phone: user.phone || '',
+      city: user.city || '',
+      bio: user.bio || '',
+    };
+    if (user.user_type === 'volunteer') {
+      currentValues.skills = 'skills' in (user.profile || {}) ? (user.profile?.skills as string) || '' : '';
+      currentValues.experience =
+        'experience' in (user.profile || {}) ? (user.profile?.experience as string) || '' : '';
+    }
+    if (user.user_type === 'organization') {
+      currentValues.name = 'name' in (user.profile || {}) ? (user.profile?.name as string) || '' : '';
+      currentValues.description =
+        'description' in (user.profile || {}) ? (user.profile?.description as string) || '' : '';
+      currentValues.website =
+        'website' in (user.profile || {}) ? (user.profile?.website as string) || '' : '';
+      currentValues.contact_email =
+        'contact_email' in (user.profile || {}) ? (user.profile?.contact_email as string) || '' : '';
+      currentValues.address =
+        'address' in (user.profile || {}) ? (user.profile?.address as string) || '' : '';
+    }
+
+    const isFormChanged = Object.keys(currentValues).some(
+      (key) => (formState[key] ?? '') !== (currentValues[key] ?? '')
+    );
+    const hasFileChanges = Boolean(avatarFile || logoFile);
+    if (!isFormChanged && !hasFileChanges) {
+      setSaveMessage('Никаких изменений не было');
+      return;
+    }
+
     const payload: Record<string, unknown> = {
       first_name: formState.first_name || '',
       last_name: formState.last_name || '',
@@ -146,6 +182,9 @@ export function Profile() {
       }
     }
     await updateProfile(payload);
+    setAvatarFile(null);
+    setLogoFile(null);
+    setSaveMessage('Изменения сохранены');
   };
 
   const applicationStatusLabel: Record<VolunteerApplication['status'], string> = {
@@ -240,41 +279,50 @@ export function Profile() {
           {user.user_type === 'organization' && <TabsTrigger value="events">Мероприятия</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="profile">
+        <TabsContent value="profile" className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">Рейтинг: {ratingValue}</Badge>
             <Badge variant="muted">Отзывы: {reviewsCount}</Badge>
           </div>
+          {saveMessage && (
+            <Alert>
+              <AlertDescription>{saveMessage}</AlertDescription>
+            </Alert>
+          )}
           <Card>
             <CardHeader>
               <CardTitle>Данные профиля</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
+            <CardContent className="grid gap-4 md:grid-cols-2 min-w-0">
               <Input
                 value={formState.first_name || ''}
                 onChange={(event) => handleChange('first_name', event.target.value)}
                 placeholder="Имя"
+                className="w-full max-w-full"
               />
               <Input
                 value={formState.last_name || ''}
                 onChange={(event) => handleChange('last_name', event.target.value)}
                 placeholder="Фамилия"
+                className="w-full max-w-full"
               />
               <Input
                 value={formState.phone || ''}
                 onChange={(event) => handleChange('phone', event.target.value)}
                 placeholder="Телефон"
+                className="w-full max-w-full"
               />
               <Input
                 value={formState.city || ''}
                 onChange={(event) => handleChange('city', event.target.value)}
                 placeholder="Город"
+                className="w-full max-w-full"
               />
               <Textarea
                 value={formState.bio || ''}
                 onChange={(event) => handleChange('bio', event.target.value)}
                 placeholder="О себе"
-                className="md:col-span-2"
+                className="md:col-span-2 w-full max-w-full"
               />
 
               {user.user_type === 'volunteer' && (
@@ -283,20 +331,37 @@ export function Profile() {
                     value={formState.skills || ''}
                     onChange={(event) => handleChange('skills', event.target.value)}
                     placeholder="Навыки"
+                    className="w-full max-w-full"
                   />
                   <Input
                     value={formState.experience || ''}
                     onChange={(event) => handleChange('experience', event.target.value)}
                     placeholder="Опыт"
+                    className="w-full max-w-full"
                   />
                   <div className="md:col-span-2 space-y-2">
                     <p className="text-sm text-muted-foreground">Аватар волонтёра</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(event) => setAvatarFile(event.target.files?.[0] || null)}
-                      className="text-sm"
-                    />
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        id="volunteer-avatar"
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => {
+                          setAvatarFile(event.target.files?.[0] || null);
+                          setSaveMessage(null);
+                        }}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="volunteer-avatar"
+                        className="inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted cursor-pointer w-fit"
+                      >
+                        Выберите файл
+                      </label>
+                      <span className="text-sm text-muted-foreground">
+                        {avatarFile ? avatarFile.name : 'Файл не выбран'}
+                      </span>
+                    </div>
                   </div>
                 </>
               )}
@@ -307,42 +372,60 @@ export function Profile() {
                     value={formState.name || ''}
                     onChange={(event) => handleChange('name', event.target.value)}
                     placeholder="Название организации"
+                    className="w-full max-w-full"
                   />
                   <Input
                     value={formState.website || ''}
                     onChange={(event) => handleChange('website', event.target.value)}
                     placeholder="Сайт"
+                    className="w-full max-w-full"
                   />
                   <Input
                     value={formState.contact_email || ''}
                     onChange={(event) => handleChange('contact_email', event.target.value)}
                     placeholder="Почта для связи"
+                    className="w-full max-w-full"
                   />
                   <Input
                     value={formState.address || ''}
                     onChange={(event) => handleChange('address', event.target.value)}
                     placeholder="Адрес"
-                    className="md:col-span-2"
+                    className="md:col-span-2 w-full max-w-full"
                   />
                   <Textarea
                     value={formState.description || ''}
                     onChange={(event) => handleChange('description', event.target.value)}
                     placeholder="Описание"
-                    className="md:col-span-2"
+                    className="md:col-span-2 w-full max-w-full"
                   />
                   <div className="md:col-span-2 space-y-2">
                     <p className="text-sm text-muted-foreground">Логотип организации</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(event) => setLogoFile(event.target.files?.[0] || null)}
-                      className="text-sm"
-                    />
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        id="organization-logo"
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => {
+                          setLogoFile(event.target.files?.[0] || null);
+                          setSaveMessage(null);
+                        }}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="organization-logo"
+                        className="inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-medium hover:bg-muted cursor-pointer w-fit"
+                      >
+                        Выберите файл
+                      </label>
+                      <span className="text-sm text-muted-foreground">
+                        {logoFile ? logoFile.name : 'Файл не выбран'}
+                      </span>
+                    </div>
                   </div>
                 </>
               )}
 
-              <Button onClick={handleSave} className="md:col-span-2">
+              <Button onClick={handleSave} className="md:col-span-2 w-full max-w-full">
                 Сохранить
               </Button>
             </CardContent>
